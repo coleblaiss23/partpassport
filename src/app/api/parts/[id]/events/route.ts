@@ -3,16 +3,34 @@ import { prisma } from "@/lib/prisma";
 import { computeEventHash } from "@/lib/hashChain";
 import { signPayload } from "@/lib/signing";
 
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const { partNumber, serialNumber, description, organizationId, privateKeyPem } = body;
+const VALID_EVENT_TYPES = ["INSTALLED", "REMOVED", "INSPECTED", "OVERHAULED", "SOLD", "SCRAPPED"];
 
-    const existing = await prisma.part.findUnique({
-      where: { partNumber_serialNumber: { partNumber, serialNumber } },
-    });
-    if (existing) {
-      return NextResponse.json({ error: "Part already exists" }, { status: 400 });
+// POST /api/parts/[id]/events — appends a lifecycle event to an EXISTING part's chain.
+export async function POST(
+  request: Request,
+  props: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await props.params;
+    const body = await request.json();
+    const { organizationId, eventType, data, privateKeyPem, certificateHash } = body;
+
+    if (!organizationId || !eventType || !privateKeyPem) {
+      return NextResponse.json(
+        { error: "organizationId, eventType, and privateKeyPem are required" },
+        { status: 400 }
+      );
+    }
+    if (!VALID_EVENT_TYPES.includes(eventType)) {
+      return NextRponse.json(
+        { error: `eventType must be one of: ${VALID_EVENT_TYPES.join(", ")}` },
+        { status: 400 }
+      );
+    }
+
+    const part = await prisma.part.findUnique({ where: { id } });
+    if (!part) {
+      return NextResponse.json({ error: "Part not found" }, { status: 404 });
     }
 
     const org = await prisma.organization.findUnique({ where: { id: organizationId } });
@@ -20,23 +38,29 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Organization not found" }, { status: 404 });
     }
 
-    const part = await prisma.part.create({
-      data: {
-        partNumber,
-        serialNumber,
-        description,
-        currentOrgId: organizationId,
-      },
+    // MVP custody check — tighten before real design-partner data goes in.
+    if (part.currentOrgId && part.currentOrgId !== organizationId && eventType !== "INSTALLED") {
+      return NextResponse.json(
+        { error: "Only the current custodian organization may add this event type" },
+        { status: 403 }
+      );
+    }
+
+    const lastEvent = await prisma.partEvent.findFirst({
+      where: { partId: part.id },
+      orderBy: { timestamp: "desc" },
     });
+    const prevEventHash = lastEvent?.eventHash ?? nul
 
     const timestamp = new Date();
-    const eventData = { description: description ?? "Initial part registration" };
+    const eventData = data ?? {};
     const eventHash = computeEventHash({
       partId: part.id,
-      eventType: "CREATED",
+      eventType,
       timestamp: timestamp.toISOString(),
-      prevEventHash: null,
+      prevEventHash,
       data: eventData,
+      certificateHash: certificateHash ?? null,
     });
 
     const signature = signPayload(
@@ -44,23 +68,28 @@ export async function POST(request: Request) {
       privateKeyPem
     );
 
-    const genesisEvent = await prisma.partEvent.create({
+    const event = await prisma.partEvent.create({
       data: {
         partId: part.id,
         organizationId,
-        eventType: "CREATED",
+        eventType,
         timestamp,
-        prevEventHash: null,
+        prevEventHash,
         eventHash,
         signature,
         data: JSON.stringify(eventData),
+        certificateHash: certificateHash ?? null,
       },
     });
 
-    return NextResponse.json({ part, genesisEvent }, { status: 201 });
+    if (eventType === "INSTALLED" || eventType === "SOLD") {
+      await prisma.part.update({ where: { id: part.id }, data: { currentOrgId: organizationId } });
+    }
+
+    return NextResponse.json({ event }, { status: 201 });
   } catch (error) {
     return NextResponse.json(
-      { error: "Part registration failed", details: (error as Error).message },
+      { error: "Event append failed", details: (error as Error).message },
       { status: 500 }
     );
   }
