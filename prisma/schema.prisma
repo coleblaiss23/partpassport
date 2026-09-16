@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Organization {
+  id        String      @id @default(cuid())
+  name      String
+  publicKey String      // PEM format
+  createdAt DateTime    @default(now())
+  parts     Part[]      @relation("CurrentCustodian")
+  events    PartEvent[]
+}
+
+model Part {
+  id           String        @id @default(cuid())
+  partNumber   String
+  serialNumber String
+  description  String?
+  currentOrgId String?
+  currentOrg   Organization? @relation("CurrentCustodian", fields: [currentOrgId], references: [id])
+  events       PartEvent[]
+  createdAt    DateTime      @default(now())
+
+  @@unique([partNumber, serialNumber])
+}
+
+model PartEvent {
+  id              String       @id @default(cuid())
+  partId          String
+  part            Part         @relation(fields: [partId], references: [id])
+  organizationId String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  eventType       String       // CREATED | REMOVED | INSPECTED | OVERHAULED | INSTALLED
+  timestamp       DateTime
+  prevEventHash   String?
+  eventHash       String
+  signature       String       // Base64
+  data            String       // JSON stringified object for SQLite compatibility
+  certificateHash String?      // SHA-256 of attached PDF
+  createdAt       DateTime     @default(now())
+
+  @@index([partId, timestamp])
+}
