@@ -84,8 +84,8 @@ export default function VerifyPage({
                   All SHA-256 hash linkages and Ed25519 signatures are mathematically sound.
                 </p>
               </div>
-            <iv>
-            <span className="text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-1 rounded">
+            </div>
+            <span className="text-xs font-monbg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-1 rounded">
               STATUS_OK
             </span>
           </div>
