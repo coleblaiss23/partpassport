@@ -2,8 +2,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateKeypair } from "@/lib/signing";
 
-// POST /api/organizations — creates a new org and returns a one-time private key.
-// MVP-only tradeoff: move key generation to the browser before real design-partner use.
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -28,7 +26,7 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     return NextResponse.json(
-      { er "Organization creation failed", details: (error as Error).message },
+      { error: "Organization creation failed", details: (error as Error).message },
       { status: 500 }
     );
   }
