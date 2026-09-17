@@ -27,8 +27,8 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (error) {
-    rn NextResponse.json(
-      { error: "Organization creation failed", details: (error as Error).message },
+    return NextResponse.json(
+      { er "Organization creation failed", details: (error as Error).message },
       { status: 500 }
     );
   }

@@ -5,7 +5,6 @@ import { signPayload } from "@/lib/signing";
 
 const VALID_EVENT_TYPES = ["INSTALLED", "REMOVED", "INSPECTED", "OVERHAULED", "SOLD", "SCRAPPED"];
 
-// POST /api/parts/[id]/events — appends a lifecycle event to an EXISTING part's chain.
 export async function POST(
   request: Request,
   props: { params: Promise<{ id: string }> }
@@ -21,8 +20,9 @@ export async function POST(
         { status: 400 }
       );
     }
+
     if (!VALID_EVENT_TYPES.includes(eventType)) {
-      return NextRponse.json(
+      return NextResponse.json(
         { error: `eventType must be one of: ${VALID_EVENT_TYPES.join(", ")}` },
         { status: 400 }
       );
@@ -38,7 +38,6 @@ export async function POST(
       return NextResponse.json({ error: "Organization not found" }, { status: 404 });
     }
 
-    // MVP custody check — tighten before real design-partner data goes in.
     if (part.currentOrgId && part.currentOrgId !== organizationId && eventType !== "INSTALLED") {
       return NextResponse.json(
         { error: "Only the current custodian organization may add this event type" },
@@ -50,7 +49,8 @@ export async function POST(
       where: { partId: part.id },
       orderBy: { timestamp: "desc" },
     });
-    const prevEventHash = lastEvent?.eventHash ?? nul
+
+    const prevEventHash = lastEvent?.eventHash ?? null;
 
     const timestamp = new Date();
     const eventData = data ?? {};
@@ -83,7 +83,10 @@ export async function POST(
     });
 
     if (eventType === "INSTALLED" || eventType === "SOLD") {
-      await prisma.part.update({ where: { id: part.id }, data: { currentOrgId: organizationId } });
+      await prisma.part.update({
+        where: { id: part.id },
+        data: { currentOrgId: organizationId },
+      });
     }
 
     return NextResponse.json({ event }, { status: 201 });

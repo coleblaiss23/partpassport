@@ -3,7 +3,6 @@ import { prisma } from "@/lib/prisma";
 import { computeEventHash } from "@/lib/hashChain";
 import { signPayload } from "@/lib/signing";
 
-// POST /api/parts — registers a brand new part and writes its genesis (CREATED) event.
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -19,8 +18,9 @@ export async function POST(request: Request) {
     const existing = await prisma.part.findUnique({
       where: { partNumber_serialNumber: { partNumber, serialNumber } },
     });
+
     if (existing) {
-      return NextResponse.json({ error: "Part already exists" }, { status: 40});
+      return NextResponse.json({ error: "Part already exists" }, { status: 409 });
     }
 
     const org = await prisma.organization.findUnique({ where: { id: organizationId } });
@@ -29,11 +29,17 @@ export async function POST(request: Request) {
     }
 
     const part = await prisma.part.create({
-      data: { partNumber, serialNumber, description, currentOrgId: organizationId },
+      data: {
+        partNumber,
+        serialNumber,
+        description,
+        currentOrgId: organizationId,
+      },
     });
 
     const timestamp = new Date();
     const eventData = { description: description ?? "Initial part registration" };
+
     const eventHash = computeEventHash({
       partId: part.id,
       eventType: "CREATED",

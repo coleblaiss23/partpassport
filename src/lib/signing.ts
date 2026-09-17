@@ -1,6 +1,17 @@
-import { generateKeyPairSync, sign, verify } from "crypto";
+import {
+  generateKeyPairSync,
+  sign,
+  verify,
+  createPrivateKey,
+  createPublicKey,
+} from "crypto";
 
-export function generateKeypair() {
+export type KeyPair = {
+  publicKey: string;
+  privateKey: string;
+};
+
+export function generateKeypair(): KeyPair {
   const { publicKey, privateKey } = generateKeyPairSync("ed25519", {
     publicKeyEncoding: { type: "spki", format: "pem" },
     privateKeyEncoding: { type: "pkcs8", format: "pem" },
@@ -8,9 +19,15 @@ export function generateKeypair() {
   return { publicKey, privateKey };
 }
 
+function stableStringify(obj: object): string {
+  return JSON.stringify(obj, Object.keys(obj).sort());
+}
+
 export function signPayload(payload: object, privateKeyPem: string): string {
-  const dataBuffer = Buffer.from(JSON.stringify(payload));
-  return sign(null, dataBuffer, privateKeyPem).toString("base64");
+  const data = stableStringify(payload);
+  const key = createPrivateKey(privateKeyPem);
+  const signature = sign(null, Buffer.from(data), key);
+  return signature.toString("base64");
 }
 
 export function verifySignature(
@@ -19,9 +36,14 @@ export function verifySignature(
   publicKeyPem: string
 ): boolean {
   try {
-    const dataBuffer = Buffer.from(JSON.stringify(payload));
-    const signatureBuffer = Buffer.from(signatureBase64, "base64");
-    return verify(null, dataBuffer, publicKeyPem, signatureBuffer);
+    const data = stableStringify(payload);
+    const key = createPublicKey(publicKeyPem);
+    return verify(
+      null,
+      Buffer.from(data),
+      key,
+      Buffer.from(signatureBase64, "base64")
+    );
   } catch {
     return false;
   }
