@@ -46,3 +46,17 @@ model PartEvent {
 
   @@index([partId, timestamp])
 }
+model SafetyFlag {
+  id               String   @id @default(cuid())
+  partNumber       String
+  source           String   // "AD" or "SDR"
+  referenceId      String   // e.g. FAA AD number, or SDR control number
+  description      String
+  serialRangeStart String?
+  serialRangeEnd   String?
+  issuedDate       DateTime
+  url              String?
+  createdAt        DateTime @default(now())
+
+  @@index([partNumber])
+}

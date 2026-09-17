@@ -28,6 +28,10 @@ export async function GET(
       return NextResponse.json({ error: "Part not found" }, { status: 404 });
     }
 
+    const safetyFlags = await prisma.safetyFlag.findMany({
+      where: { partNumber: params.partNumber },
+    });
+
     let expectedPrevHash: string | null = null;
 
     for (const event of part.events) {
@@ -36,6 +40,7 @@ export async function GET(
           valid: false,
           reason: "HASH_CHAIN_BROKEN",
           brokenAtEventId: event.id,
+          safetyFlags,
         });
       }
 
@@ -55,6 +60,7 @@ export async function GET(
           valid: false,
           reason: "EVENT_DATA_TAMPERED",
           brokenAtEventId: event.id,
+          safetyFlags,
         });
       }
 
@@ -69,6 +75,7 @@ export async function GET(
           valid: false,
           reason: "INVALID_SIGNATURE",
           brokenAtEventId: event.id,
+          safetyFlags,
         });
       }
 
@@ -79,6 +86,7 @@ export async function GET(
       valid: true,
       eventsCount: part.events.length,
       events: part.events,
+      safetyFlags,
     });
   } catch (error) {
     return NextResponse.json(
