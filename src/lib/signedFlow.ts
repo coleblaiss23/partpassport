@@ -12,10 +12,12 @@ export async function signInBrowser(
   return btoa(String.fromCharCode(...new Uint8Array(sig)));
 }
 
+/** Authenticates with the session cookie (or an explicit apiKey for scripts). */
 export async function prepareSignCommit(o: {
-  apiKey: string; privateKey: string; prepareUrl: string; commitUrl: string; body: object;
+  privateKey: string; prepareUrl: string; commitUrl: string; body: object; apiKey?: string;
 }) {
-  const headers = { "Content-Type": "application/json", Authorization: `Bearer ${o.apiKey.trim()}` };
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (o.apiKey) headers.Authorization = `Bearer ${o.apiKey.trim()}`;
   const p = await fetch(o.prepareUrl, { method: "POST", headers, body: JSON.stringify(o.body) });
   const pj = await p.json();
   if (!p.ok) throw new Error(pj.error ?? "Prepare failed");

@@ -1,88 +1,126 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Button, Field, inputClass } from "../ui";
+import { useVault } from "@/components/VaultProvider";
+import { Badge, Card, PageHeader, btnPrimary, btnSecondary } from "@/components/ui";
 
 type Result = { id: string; mode: string; certificateHash: string; extracted: Record<string, unknown>; redFlags: string[] };
-const FIELDS: [string, string][] = [
-  ["partNumber", "Part number"], ["serial", "Serial"], ["description", "Description"], ["status", "Status / work"],
-  ["approvalNumber", "Approval no."], ["date", "Date"], ["hasSignature", "Signature present"], ["remarks", "Remarks"],
-];
+type Item = { id: string; file: File; url: string; status: "queued" | "running" | "done" | "error"; result?: Result; error?: string };
+const FIELDS: [string, string][] = [["partNumber", "Part number"], ["serial", "Serial"], ["description", "Description"], ["status", "Status / work"], ["approvalNumber", "Approval no."], ["date", "Date"], ["hasSignature", "Signature present"], ["remarks", "Remarks"]];
 const show = (v: unknown) => (v == null || v === "" ? "not found" : v === true ? "Yes" : v === false ? "No" : String(v));
+const tone = (i: Item) => (i.status === "error" ? "red" : i.status === "done" ? (i.result?.redFlags.length ? "amber" : "green") : "slate");
+const text = (i: Item) => (i.status === "done" ? (i.result?.redFlags.length ? `${i.result.redFlags.length} findings` : "Clear") : i.status === "error" ? "Error" : i.status === "running" ? "Analyzing…" : "Queued");
 
-export default function CheckPage() {
-  const [apiKey, setApiKey] = useState("");
-  const [file, setFile] = useState<File | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [res, setRes] = useState<Result | null>(null);
+export default function ScannerPage() {
+  const v = useVault();
+  const [items, setItems] = useState<Item[]>([]);
+  const [sel, setSel] = useState<string | null>(null);
   const [ai, setAi] = useState<{ mode: string; message: string } | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [drag, setDrag] = useState(false);
+  const ref = useRef<Item[]>([]);
+  ref.current = items;
 
   useEffect(() => { fetch("/api/ai-status").then((r) => r.json()).then(setAi).catch(() => {}); }, []);
+  useEffect(() => () => ref.current.forEach((i) => URL.revokeObjectURL(i.url)), []);
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!file) return;
-    setBusy(true); setError(""); setRes(null); setCopied(false);
+  const patch = (id: string, p: Partial<Item>) => setItems((all) => all.map((i) => (i.id === id ? { ...i, ...p } : i)));
+
+  async function analyze(it: Item) {
+    patch(it.id, { status: "running" });
     try {
-      const fd = new FormData(); fd.append("file", file);
-      const r = await fetch("/api/certificates/analyze", { method: "POST", headers: { Authorization: `Bearer ${apiKey.trim()}` }, body: fd });
+      const fd = new FormData();
+      fd.append("file", it.file);
+      const r = await fetch("/api/certificates/analyze", { method: "POST", body: fd });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error ?? "Analysis failed");
-      setRes(j);
-    } catch (err) { setError((err as Error).message); }
-    setBusy(false);
+      patch(it.id, { status: "done", result: j });
+    } catch (e) { patch(it.id, { status: "error", error: (e as Error).message }); }
   }
 
+  async function addFiles(list: FileList | File[]) {
+    const pdfs = Array.from(list).filter((f) => f.type === "application/pdf" || f.name.toLowerCase().endsWith(".pdf")).slice(0, 20);
+    const fresh: Item[] = pdfs.map((file) => ({ id: crypto.randomUUID(), file, url: URL.createObjectURL(file), status: "queued" }));
+    if (!fresh.length) return;
+    setItems((p) => [...p, ...fresh]);
+    setSel((s) => s ?? fresh[0].id);
+    for (const it of fresh) await analyze(it); // one at a time keeps within the rate limit
+  }
+
+  const cur = items.find((i) => i.id === sel);
   const banner = ai && (
-    <div className={`rounded border p-3 text-xs font-mono ${ai.mode === "anthropic" ? "border-emerald-700 bg-emerald-950/30 text-emerald-300" : ai.mode === "mock" ? "border-amber-600 bg-amber-950/40 text-amber-300" : "border-rose-700 bg-rose-950/40 text-rose-300"}`}>
-      {ai.message}
-    </div>
+    <div className={`rounded-md border p-3 text-sm ${ai.mode === "anthropic" ? "border-emerald-800 bg-emerald-950/40 text-emerald-300" : ai.mode === "mock" ? "border-amber-800 bg-amber-950/40 text-amber-300" : "border-rose-800 bg-rose-950/40 text-rose-300"}`}>{ai.message}</div>
   );
-  const registerHref = res
-    ? `/dashboard/parts/new?${new URLSearchParams({ pn: String(res.extracted.partNumber ?? ""), sn: String(res.extracted.serial ?? ""), desc: String(res.extracted.description ?? ""), cert: res.certificateHash })}`
-    : "";
+
+  if (v.ready && !v.org)
+    return (
+      <main className="mx-auto max-w-2xl space-y-6 px-4 py-8">
+        <PageHeader title="Certificate scanner" />
+        <Card className="space-y-3"><p className="text-slate-300">Connect your organization to scan certificates.</p><Link href="/connect" className={btnPrimary}>Connect organization</Link></Card>
+      </main>
+    );
 
   return (
-    <main className="min-h-[calc(100vh-57px)] bg-slate-950 text-slate-100 font-sans p-6 md:p-12">
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div>
-          <span className="text-xs font-mono tracking-widest text-emerald-500 uppercase">PAPERWORK_AUDIT</span>
-          <h1 className="text-2xl font-bold tracking-tight text-white mt-1">Certificate Check</h1>
-        </div>
-        {banner}
-        <form onSubmit={submit} className="bg-slate-900/80 border border-slate-800 rounded-lg p-6 space-y-4 shadow-xl">
-          <Field label="API key"><input className={inputClass} type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)} required /></Field>
-          <Field label="8130-3 / EASA Form 1 (PDF, max 10 MB)"><input className={inputClass} type="file" accept="application/pdf" onChange={(e) => setFile(e.target.files?.[0] ?? null)} required /></Field>
-          <Button disabled={busy}>{busy ? "ANALYZING..." : "ANALYZE"}</Button>
-        </form>
-        {error && <p className="rounded border border-rose-700 bg-rose-950/40 p-3 text-xs font-mono text-rose-300">ERROR: {error}</p>}
-
-        {res && (
-          <div className="space-y-4">
-            {res.mode === "mock" && <p className="text-xs font-mono text-amber-400">Mock result: canned sample data, not a real analysis.</p>}
-            <section className={`rounded-lg border p-4 ${res.redFlags.length ? "border-amber-600 bg-amber-950/30" : "border-emerald-700 bg-emerald-950/30"}`}>
-              <h2 className="font-semibold">{res.redFlags.length ? `Review recommended: ${res.redFlags.length} finding${res.redFlags.length > 1 ? "s" : ""}` : "No issues detected in the document"}</h2>
-              {res.redFlags.length > 0 && <ul className="list-disc ml-5 mt-2 text-sm text-slate-300 space-y-1">{res.redFlags.map((f) => <li key={f}>{f}</li>)}</ul>}
-            </section>
-            <table className="w-full text-sm border border-slate-800"><tbody>
-              {FIELDS.map(([k, label]) => (
-                <tr key={k} className="border-b border-slate-800">
-                  <td className="p-2 text-slate-400 font-mono w-40">{label}</td>
-                  <td className={`p-2 ${res.extracted[k] == null || res.extracted[k] === "" ? "text-rose-400" : ""}`}>{show(res.extracted[k])}</td>
-                </tr>
+    <main className="mx-auto max-w-6xl space-y-5 px-4 py-8">
+      <PageHeader title="Certificate scanner" subtitle="Drop one or more 8130-3 / EASA Form 1 PDFs. Review the document beside the findings." />
+      {banner}
+      <div className="grid gap-5 lg:grid-cols-2">
+        <div className="space-y-4">
+          <label
+            onDragOver={(e) => { e.preventDefault(); setDrag(true); }} onDragLeave={() => setDrag(false)}
+            onDrop={(e) => { e.preventDefault(); setDrag(false); addFiles(e.dataTransfer.files); }}
+            className={`flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed p-8 text-center transition ${drag ? "border-emerald-500 bg-emerald-950/20" : "border-slate-700 hover:border-slate-500"}`}
+          >
+            <span className="font-medium text-white">Drop PDFs here or click to browse</span>
+            <span className="text-xs text-slate-500">Up to 20 files, 10 MB each</span>
+            <input type="file" accept="application/pdf" multiple className="hidden" onChange={(e) => { if (e.target.files) addFiles(e.target.files); e.target.value = ""; }} />
+          </label>
+          {items.length > 0 && (
+            <Card className="space-y-1 p-2">
+              {items.map((i) => (
+                <button key={i.id} onClick={() => setSel(i.id)} className={`flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-left text-sm ${i.id === sel ? "bg-slate-800" : "hover:bg-slate-900"}`}>
+                  <span className="truncate text-slate-200">{i.file.name}</span>
+                  <Badge tone={tone(i)}>{text(i)}</Badge>
+                </button>
               ))}
-            </tbody></table>
-            <p className="text-[10px] font-mono text-slate-500 break-all">File SHA-256: {res.certificateHash}</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <Link href={`/report/${res.id}`} className="block text-center bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-mono font-bold text-xs py-2.5 rounded">OPEN_SHAREABLE_REPORT</Link>
-              <Link href={registerHref} className="block text-center border border-slate-700 hover:border-emerald-500 text-slate-200 font-mono text-xs py-2.5 rounded">REGISTER_THIS_PART</Link>
-              <button type="button" onClick={() => { navigator.clipboard.writeText(res.certificateHash); setCopied(true); }} className="border border-slate-700 hover:border-emerald-500 text-slate-200 font-mono text-xs py-2.5 rounded">{copied ? "COPIED" : "COPY_FILE_HASH"}</button>
-            </div>
-            <p className="text-xs text-slate-500">Automated records review only. This is not an airworthiness determination.</p>
-          </div>
-        )}
+            </Card>
+          )}
+          {cur && <iframe title="Certificate preview" src={cur.url} className="h-[65vh] w-full rounded-xl border border-slate-800 bg-white" />}
+        </div>
+
+        <div className="space-y-4">
+          {!cur && <Card><p className="text-sm text-slate-400">Results will appear here.</p></Card>}
+          {cur?.status === "running" && <Card><p className="text-sm text-slate-300">Analyzing {cur.file.name}…</p></Card>}
+          {cur?.status === "error" && <p className="rounded-md border border-rose-800 bg-rose-950/50 p-3 text-sm text-rose-300">Error: {cur.error}</p>}
+          {cur?.result && (() => {
+            const r = cur.result;
+            const reg = `/dashboard/parts/new?${new URLSearchParams({ pn: String(r.extracted.partNumber ?? ""), sn: String(r.extracted.serial ?? ""), desc: String(r.extracted.description ?? ""), cert: r.certificateHash })}`;
+            return (
+              <>
+                {r.mode === "mock" && <p className="text-xs text-amber-400">Mock result: canned sample data, not a real analysis.</p>}
+                <section className={`rounded-xl border p-4 ${r.redFlags.length ? "border-amber-700 bg-amber-950/30" : "border-emerald-800 bg-emerald-950/30"}`}>
+                  <h2 className="font-medium text-white">{r.redFlags.length ? `Review recommended: ${r.redFlags.length} finding${r.redFlags.length > 1 ? "s" : ""}` : "No issues detected in the document"}</h2>
+                  {r.redFlags.length > 0 && <ul className="ml-5 mt-2 list-disc space-y-1 text-sm text-slate-300">{r.redFlags.map((f) => <li key={f}>{f}</li>)}</ul>}
+                </section>
+                <Card className="p-0">
+                  <table className="w-full text-sm"><tbody>
+                    {FIELDS.map(([k, l]) => (
+                      <tr key={k} className="border-b border-slate-800 last:border-0">
+                        <td className="w-40 p-3 text-slate-400">{l}</td>
+                        <td className={`p-3 ${r.extracted[k] == null || r.extracted[k] === "" ? "text-rose-400" : "text-slate-100"}`}>{show(r.extracted[k])}</td>
+                      </tr>
+                    ))}
+                  </tbody></table>
+                </Card>
+                <p className="break-all text-xs text-slate-500">File SHA-256: <span className="font-mono">{r.certificateHash}</span></p>
+                <div className="flex flex-wrap gap-2">
+                  <Link href={`/report/${r.id}`} className={btnPrimary}>Open shareable report</Link>
+                  <Link href={reg} className={btnSecondary}>Register this part</Link>
+                </div>
+                <p className="text-xs text-slate-500">Automated records review only. This is not an airworthiness determination.</p>
+              </>
+            );
+          })()}
+        </div>
       </div>
     </main>
   );
