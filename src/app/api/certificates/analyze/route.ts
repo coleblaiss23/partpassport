@@ -1,52 +1,42 @@
 import { NextResponse } from "next/server";
-import { analyzeCertificate } from "@/lib/certificateAnalyze";
+import { createHash } from "crypto";
+import { prisma } from "@/lib/prisma";
+import { AiNotConfigured, extractCert, localFlags } from "@/lib/extract";
+import { rateLimit } from "@/lib/rateLimit";
+import { orgFromRequest, unauthorized } from "@/lib/api";
 
-export const runtime = "nodejs";
+const MAX_BYTES = 10 * 1024 * 1024;
+const err = (status: number, error: string) => NextResponse.json({ error }, { status });
 
 export async function POST(request: Request) {
+  const org = await orgFromRequest(request);
+  if (!org) return unauthorized();
+  if (!rateLimit(`analyze:${org.id}`, 20, 60_000)) return err(429, "Rate limit: 20 per minute");
   try {
-    const formData = await request.formData();
-    const file =
-      (formData.get("file") as File | null) ||
-      (formData.get("certificate") as File | null) ||
-      (formData.get("pdf") as File | null);
+    const file = (await request.formData()).get("file");
+    if (!(file instanceof File)) return err(400, "No file uploaded");
+    if (file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")) return err(415, "PDF files only");
+    if (file.size > MAX_BYTES) return err(413, "File over 10 MB");
 
-    if (!file) {
-      return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
-    }
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const sha256 = createHash("sha256").update(buffer).digest("hex");
+    const { data, mode } = await extractCert(buffer.toString("base64"), file.name);
+    const redFlags = [...new Set([...localFlags(data), ...(data.redFlags ?? [])])];
 
-    const analysis = await analyzeCertificate(file);
-
-    return NextResponse.json({
-      ok: true,
-      analysis,
-      certificateHash: analysis.certificateHash,
-      partNumber: analysis.partNumber,
-      serialNumber: analysis.serialNumber,
-      discrepancies: analysis.discrepancies,
-      summary: analysis.summary,
+    const check = await prisma.certificateCheck.create({
+      data: {
+        organizationId: org.id, fileName: file.name.slice(0, 200), sha256,
+        extracted: JSON.stringify({ ...data, _mode: mode }), redFlags: JSON.stringify(redFlags),
+      },
     });
-  } catch (error) {
-    const message = (error as Error).message || "Analysis failed";
-    const code = (error as Error & { code?: string }).code;
-
-    if (
-      code === "AI_NOT_CONFIGURED" ||
-      message.includes("AI analysis is not configured")
-    ) {
-      return NextResponse.json(
-        {
-          error: "AI analysis is not configured",
-          details:
-            "Set OPENAI_API_KEY or ANTHROPIC_API_KEY in .env.local. Without a key, upload a text-based PDF so heuristic extraction can run.",
-        },
-        { status: 503 }
-      );
-    }
-
-    return NextResponse.json(
-      { error: "Certificate analysis failed", details: message },
-      { status: 500 }
-    );
+    return NextResponse.json({ id: check.id, mode, certificateHash: sha256, extracted: data, redFlags });
+  } catch (e) {
+    console.error("[analyze] failed:", e);
+    if (e instanceof AiNotConfigured) return err(503, e.message);
+    const status = (e as { status?: number }).status;
+    if (status === 401) return err(502, "The AI provider rejected the API key. Check ANTHROPIC_API_KEY.");
+    if (status === 429) return err(429, "The AI provider is rate limiting. Try again shortly.");
+    if (status === 400 || status === 402) return err(502, "The AI provider refused the request (check billing/credits at console.anthropic.com).");
+    return err(500, "Analysis failed. See the server terminal for details.");
   }
 }

@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { prepareSignCommit } from "@/lib/signedFlow";
 import { Button, Field, Shell, inputClass } from "../../ui";
@@ -10,6 +10,12 @@ export default function NewPartPage() {
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<{ id: string; verify: string } | null>(null);
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setF({ ...f, [k]: e.target.value });
+
+  // Prefill from the certificate check page (?pn=&sn=&desc=&cert=)
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    setF((p) => ({ ...p, partNumber: q.get("pn") ?? p.partNumber, serialNumber: q.get("sn") ?? p.serialNumber, description: q.get("desc") ?? p.description, certificateHash: q.get("cert") ?? p.certificateHash }));
+  }, []);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
