@@ -1,96 +1,56 @@
 "use client";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { prepareSignCommit } from "@/lib/signedFlow";
+import { Button, Field, Shell, inputClass } from "../../ui";
 
-import { useState } from "react";
+const TYPES = ["INSPECTED", "REPAIRED", "OVERHAULED", "INSTALLED", "REMOVED", "SOLD", "TRANSFERRED", "SCRAPPED"];
 
 export default function NewEventPage() {
-  const [partId, setPartId] = useState("");
-  const [organizationId, setOrganizationId] = useState("");
-  const [eventType, setEventType] = useState("INSPECTED");
-  const [privateKeyPem, setPrivateKeyPem] = useState("");
+  const [f, setF] = useState({ apiKey: "", privateKey: "", partId: "", eventType: "INSPECTED", notes: "", toOrganizationId: "", certificateHash: "" });
   const [status, setStatus] = useState("");
+  const [ok, setOk] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setF({ ...f, [k]: e.target.value });
+  const transfer = f.eventType === "SOLD" || f.eventType === "TRANSFERRED";
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("partId");
+    if (id) setF((p) => ({ ...p, partId: id }));
+  }, []);
+
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setStatus("SUBMITTING_EVENT...");
-
-    const res = await fetch(`/api/parts/${partId}/events`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        organizationId,
-        eventType,
-        data: { notes: "Lifecycle inspection completed" },
-        privateKeyPem,
-      }),
-    });
-
-    if (res.ok) {
-      setStatus("EVENT_APPENDED_AND_SIGNED");
-    } else {
-      const err = await res.json();
-      setStatus(`ERROR: ${err.error || err.details}`);
-    }
-  };
-
-  const inputClass =
-    "w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-sm text-white font-mono placeholder:text-slate-600 focus:outline-none focus:border-emerald-500";
+    setStatus("Signing in your browser..."); setOk(false); setBusy(true);
+    try {
+      const data: Record<string, string> = { notes: f.notes };
+      if (transfer) data.toOrganizationId = f.toOrganizationId;
+      await prepareSignCommit({
+        apiKey: f.apiKey, privateKey: f.privateKey, prepareUrl: `/api/parts/${f.partId}/events/prepare`,
+        commitUrl: `/api/parts/${f.partId}/events`,
+        body: { eventType: f.eventType, data, certificateHash: f.certificateHash || null },
+      });
+      setStatus("Event signed and added to the part's history."); setOk(true);
+    } catch (err) { setStatus(`ERROR: ${(err as Error).message}`); }
+    setBusy(false);
+  }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 font-sans p-6 md:p-12">
-      <div className="max-w-md mx-auto space-y-6">
-        <div>
-          <span className="text-xs font-mono tracking-widest text-emerald-500 uppercase">
-            LIFECYCLE_EVENT
-          </span>
-          <h1 className="text-2xl font-bold tracking-tight text-white mt-1">Append Lifecycle Event</h1>
-        </div>
-
-        <form
-          onSubmit={handleSubmit}
-          className="bg-slate-900/80 border border-slate-800 rounded-lg p-6 space-y-4 shadow-xl"
-        >
-          <div>
-            <label className="block text-xs font-mono uppercase tracking-wider text-slate-400 mb-1.5">
-              Part ID
-            </label>
-            <input type="text" className={inputClass} value={partId}
-              onChange={(e) => setPartId(e.target.value)} required />
-          </div>
-          <div>
-            <label className="block text-xs font-mono uppercase tracking-wider text-slate-400 mb-1.5">
-              Organization ID
-            </label>
-            <input type="text" className={inputClass} value={organizationId}
-              onChange={(e) => setOrganizationId(e.target.value)} required />
-          </div>
-          <div>
-            <label className="block text-xs font-mono uppercase tracking-wider text-slate-400 mb-1.5">
-              Event Type
-            </label>
-            <select className={inputClass} value={eventType}
-              onChange={(e) => setEventType(e.target.value)}>
-              <option value="INSPECTED">INSPECTED</option>
-              <option value="OVERHAULED">OVERHAULED</option>
-              <option value="REMOVED">REMOVED</option>
-              <option value="INSTALLED">INSTALLED</option>
-              <option value="SOLD">SOLD</option>
-              <option value="SCRAPPED">SCRAPPED</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-mono uppercase tracking-wider text-slate-400 mb-1.5">
-              Organization Private Key (PEM)
-            </label>
-            <textarea className={`${inputClass} h-24`} value={privateKeyPem}
-              onChange={(e) => setPrivateKeyPem(e.target.value)} required />
-          </div>
-          <button type="submit"
-            className="w-full bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-mono font-bold text-xs uppercase tracking-wider py-3 rounded transition">
-            Sign & Append Event
-          </button>
-        </form>
-        {status && <p className="text-sm font-mono text-emerald-400">{status}</p>}
-      </div>
-    </main>
+    <Shell tag="LIFECYCLE_EVENT" title="Append Lifecycle Event">
+      <form onSubmit={submit} className="space-y-4">
+        <Field label="API key"><input className={inputClass} type="password" value={f.apiKey} onChange={set("apiKey")} required /></Field>
+        <Field label="Private key (stays in this browser)"><textarea className={inputClass} rows={3} autoComplete="off" value={f.privateKey} onChange={set("privateKey")} required /></Field>
+        <Field label="Part ID"><input className={inputClass} value={f.partId} onChange={set("partId")} required /></Field>
+        <Field label="Event type">
+          <select className={inputClass} value={f.eventType} onChange={set("eventType")}>{TYPES.map((t) => <option key={t}>{t}</option>)}</select>
+        </Field>
+        {transfer && <Field label="Destination organization ID"><input className={inputClass} value={f.toOrganizationId} onChange={set("toOrganizationId")} required /></Field>}
+        <Field label="Notes"><input className={inputClass} value={f.notes} onChange={set("notes")} /></Field>
+        <Field label="Certificate SHA-256 (optional)"><input className={inputClass} value={f.certificateHash} onChange={set("certificateHash")} /></Field>
+        <Button disabled={busy}>{busy ? "SIGNING..." : "SIGN_AND_APPEND"}</Button>
+      </form>
+      {status && <p className={`text-xs font-mono break-all ${status.startsWith("ERROR") ? "text-rose-400" : "text-emerald-400"}`}>{status}</p>}
+      {ok && <Link href="/dashboard" className="block text-center border border-slate-700 hover:border-emerald-500 text-slate-200 font-mono text-xs py-2.5 rounded">BACK_TO_DASHBOARD</Link>}
+    </Shell>
   );
 }

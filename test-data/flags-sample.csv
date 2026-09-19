@@ -1,0 +1,3 @@
+partNumber,source,referenceId,description,serialRangeStart,serialRangeEnd,issuedDate,url
+DEMO-CERT-200,AD,TEST-AD-0002,TEST DATA (fictional): inspect actuator assembly for wear before further flight,,,2026-01-15,
+DEMO-AD-100,SDR,TEST-SDR-0001,TEST DATA (fictional): reported cracking on units in this serial range,1000,1999,2026-03-02,

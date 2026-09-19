@@ -2,96 +2,49 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { computeEventHash } from "@/lib/hashChain";
 import { verifySignature } from "@/lib/signing";
+import { normPN, serialInRange } from "@/lib/normalize";
+import { clientIp, rateLimit } from "@/lib/rateLimit";
 
-export async function GET(
-  request: Request,
-  props: { params: Promise<{ partNumber: string; serial: string }> }
-) {
+const safe = (s: string) => { try { return decodeURIComponent(s); } catch { return s; } };
+
+export async function GET(request: Request, props: { params: Promise<{ partNumber: string; serial: string }> }) {
+  if (!rateLimit(`verify:${clientIp(request)}`, 60, 60_000))
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   try {
-    const params = await props.params;
+    const p = await props.params;
+    const partNumber = safe(p.partNumber), serialNumber = safe(p.serial);
     const part = await prisma.part.findUnique({
-      where: {
-        partNumber_serialNumber: {
-          partNumber: params.partNumber,
-          serialNumber: params.serial,
-        },
-      },
-      include: {
-        events: {
-          orderBy: { timestamp: "asc" },
-          include: { organization: true },
-        },
-      },
+      where: { partNumber_serialNumber: { partNumber, serialNumber } },
+      include: { events: { orderBy: { seq: "asc" }, include: { organization: { select: { id: true, name: true, publicKey: true } } } } },
     });
+    if (!part) return NextResponse.json({ error: "Part not found" }, { status: 404 });
 
-    if (!part) {
-      return NextResponse.json({ error: "Part not found" }, { status: 404 });
-    }
+    const candidates = await prisma.safetyFlag.findMany({ where: { partNumberNorm: normPN(partNumber) } });
+    const safetyFlags = candidates.filter((f) => serialInRange(serialNumber, f.serialRangeStart, f.serialRangeEnd));
 
-    const safetyFlags = await prisma.safetyFlag.findMany({
-      where: { partNumber: params.partNumber },
-    });
+    const events = part.events.map(({ organization, ...e }) => ({ ...e, organization: { id: organization.id, name: organization.name } }));
+    const base = { partNumber, serialNumber, scrapped: part.scrapped, currentOrgId: part.currentOrgId, safetyFlags };
 
-    let expectedPrevHash: string | null = null;
-
-    for (const event of part.events) {
-      if (event.prevEventHash !== expectedPrevHash) {
-        return NextResponse.json({
-          valid: false,
-          reason: "HASH_CHAIN_BROKEN",
-          brokenAtEventId: event.id,
-          safetyFlags,
-        });
-      }
-
-      const eventData = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
-
-      const recomputedHash = computeEventHash({
-        partId: event.partId,
-        eventType: event.eventType,
-        timestamp: event.timestamp.toISOString(),
-        prevEventHash: event.prevEventHash,
-        data: eventData,
-        certificateHash: event.certificateHash,
+    let expectedPrev: string | null = null;
+    for (const [i, e] of part.events.entries()) {
+      const bad = (reason: string) =>
+        NextResponse.json({ ...base, valid: false, reason, brokenAtEventId: e.id, events });
+      if (e.seq !== i + 1) return bad("SEQUENCE_GAP");
+      if (e.prevEventHash !== expectedPrev) return bad("HASH_CHAIN_BROKEN");
+      const h = computeEventHash({
+        partId: e.partId, organizationId: e.organizationId, seq: e.seq, eventType: e.eventType,
+        timestamp: e.timestamp.toISOString(), prevEventHash: e.prevEventHash, data: e.data, certificateHash: e.certificateHash,
       });
-
-      if (recomputedHash !== event.eventHash) {
-        return NextResponse.json({
-          valid: false,
-          reason: "EVENT_DATA_TAMPERED",
-          brokenAtEventId: event.id,
-          safetyFlags,
-        });
-      }
-
-      const isSigValid = verifySignature(
-        { partId: event.partId, eventHash: event.eventHash, timestamp: event.timestamp.toISOString() },
-        event.signature,
-        event.organization.publicKey
+      if (h !== e.eventHash) return bad("EVENT_DATA_TAMPERED");
+      const ok = verifySignature(
+        { partId: e.partId, eventHash: e.eventHash, timestamp: e.timestamp.toISOString() },
+        e.signature, e.organization.publicKey
       );
-
-      if (!isSigValid) {
-        return NextResponse.json({
-          valid: false,
-          reason: "INVALID_SIGNATURE",
-          brokenAtEventId: event.id,
-          safetyFlags,
-        });
-      }
-
-      expectedPrevHash = event.eventHash;
+      if (!ok) return bad("INVALID_SIGNATURE");
+      expectedPrev = e.eventHash;
     }
-
-    return NextResponse.json({
-      valid: true,
-      eventsCount: part.events.length,
-      events: part.events,
-      safetyFlags,
-    });
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Verification failed", details: (error as Error).message },
-      { status: 500 }
-    );
+    return NextResponse.json({ ...base, valid: true, eventsCount: events.length, events });
+  } catch {
+    return NextResponse.json({ error: "Verification failed" }, { status: 500 });
   }
 }

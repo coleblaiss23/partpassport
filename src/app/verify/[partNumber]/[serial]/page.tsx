@@ -17,6 +17,9 @@ interface PartEvent {
 
 interface VerificationData {
   valid: boolean;
+  error?: string;
+  scrapped?: boolean;
+  safetyFlags?: { id: string; source: string; referenceId: string; description: string; url?: string | null }[];
   reason?: string;
   brokenAtEventId?: string;
   events?: PartEvent[];
@@ -72,20 +75,24 @@ export default function VerifyPage({
           </Link>
         </div>
 
-        {data?.valid ? (
+        {data?.error ? (
+          <div className="p-4 bg-slate-900 border border-slate-700 rounded-lg text-sm font-mono text-slate-300">
+            NO_RECORD: {data.error}. This part has no passport in the registry.
+          </div>
+        ) : data?.valid ? (
           <div className="p-4 bg-emerald-950/40 border border-emerald-500/30 rounded-lg flex items-center justify-between">
             <div className="flex items-center gap-3">
               <span className="h-3 w-3 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
               <div>
                 <p className="text-sm font-semibold text-emerald-400">
-                  CRYPTOGRAPHIC CHAIN VERIFIED
+                  RECORD CHAIN INTACT
                 </p>
                 <p className="text-xs text-emerald-600/80 font-mono">
-                  All SHA-256 hash linkages and Ed25519 signatures are mathematically sound.
+                  All hash links and signatures check out. This is a records check, not an airworthiness determination.
                 </p>
               </div>
             </div>
-            <span className="text-xs font-monbg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-1 rounded">
+            <span className="text-xs font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-1 rounded">
               STATUS_OK
             </span>
           </div>
@@ -105,6 +112,20 @@ export default function VerifyPage({
             <span className="text-xs font-mono bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-1 rounded">
               FAILED_AUDIT
             </span>
+          </div>
+        )}
+
+        {data?.scrapped && (
+          <div className="p-4 bg-rose-950/40 border border-rose-500/30 rounded-lg text-sm font-mono text-rose-300">
+            SCRAPPED: this part was recorded as scrapped. Treat any new paperwork for it as suspect.
+          </div>
+        )}
+        {!!data?.safetyFlags?.length && (
+          <div className="p-4 bg-amber-950/40 border border-amber-500/30 rounded-lg space-y-1">
+            <p className="text-sm font-semibold text-amber-400">SAFETY DATA MATCHES ({data.safetyFlags.length})</p>
+            {data.safetyFlags.map((f) => (
+              <p key={f.id} className="text-xs font-mono text-amber-200/80">{f.source} {f.referenceId}: {f.description}</p>
+            ))}
           </div>
         )}
 

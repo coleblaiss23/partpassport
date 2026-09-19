@@ -2,6 +2,8 @@ import { createHash } from "crypto";
 
 export interface EventHashInput {
   partId: string;
+  organizationId: string;
+  seq: number;
   eventType: string;
   timestamp: string;
   prevEventHash: string | null;
@@ -15,6 +17,8 @@ export function computeEventHash(input: EventHashInput): string {
 
   const payload = [
     input.partId,
+    input.organizationId,
+    String(input.seq),
     input.eventType,
     input.timestamp,
     input.prevEventHash ?? "GENESIS",

@@ -8,14 +8,22 @@
     "start": "next start",
     "lint": "next lint",
     "test": "vitest",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "postinstall": "prisma generate",
+    "org:create": "tsx --env-file=.env scripts/create-org.ts",
+    "flags:import": "tsx --env-file=.env scripts/importSafetyFlags.ts",
+    "test:e2e": "tsx --env-file=.env scripts/e2e.ts",
+    "seed:demo": "tsx --env-file=.env scripts/seed-demo.ts"
   },
   "prisma": {
-    "seed": "npx tsx prisma/seed.ts"
+    "seed": "tsx --env-file=.env scripts/create-org.ts \"Demo Org\""
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.127.0",
     "@prisma/client": "^5.0.0",
     "next": "^15.5.25",
+    "pdf-parse": "^2.4.5",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },

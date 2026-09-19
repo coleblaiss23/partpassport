@@ -1,73 +1,51 @@
 "use client";
-
 import { useState } from "react";
+import Link from "next/link";
+import { prepareSignCommit } from "@/lib/signedFlow";
+import { Button, Field, Shell, inputClass } from "../../ui";
 
 export default function NewPartPage() {
-  const [partNumber, setPartNumber] = useState("");
-  const [serialNumber, setSerialNumber] = useState("");
-  const [description, setDescription] = useState("");
-  const [organizationId, setOrganizationId] = useState("");
-  const [privateKeyPem, setPrivateKeyPem] = useState("");
+  const [f, setF] = useState({ apiKey: "", privateKey: "", partNumber: "", serialNumber: "", description: "", certificateHash: "" });
   const [status, setStatus] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [done, setDone] = useState<{ id: string; verify: string } | null>(null);
+  const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setF({ ...f, [k]: e.target.value });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    setStatus("REGISTERING_PART...");
-
-    const res = await fetch("/api/parts", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ partNumber, serialNumber, description, organizationId, privateKeyPem }),
-    });
-
-    if (res.ok) {
-      const json = await res.json();
-      setStatus(`REGISTERED. PART_ID: ${json.part.id}`);
-    } else {
-      const err = await res.json();
-      setStatus(`ERROR: ${err.error || err.details}`);
-    }
-  };
-
-  const inputClass =
-    "w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-sm text-white font-mono placeholder:text-slate-600 focus:outline-none focus:border-emerald-500";
+    setStatus("Signing in your browser..."); setDone(null); setBusy(true);
+    try {
+      const r = await prepareSignCommit({
+        apiKey: f.apiKey, privateKey: f.privateKey, prepareUrl: "/api/parts/prepare", commitUrl: "/api/parts",
+        body: { partNumber: f.partNumber, serialNumber: f.serialNumber, description: f.description || null, certificateHash: f.certificateHash || null },
+      });
+      setStatus("Registered and signed.");
+      setDone({ id: r.part.id, verify: `/verify/${encodeURIComponent(r.part.partNumber)}/${encodeURIComponent(r.part.serialNumber)}` });
+    } catch (err) { setStatus(`ERROR: ${(err as Error).message}`); }
+    setBusy(false);
+  }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 font-sans p-6 md:p-12">
-      <div className="max-w-md mx-auto space-y-6">
-        <div>
-          <span className="text-xs font-mono tracking-widest text-emerald-500 uppercase">
-            GENESIS_REGISTRATION
-          </span>
-          <h1 className="text-2xl font-bold tracking-tight text-white mt-1">Register New Part</h1>
+    <Shell tag="PART_REGISTRATION" title="Register Part">
+      <form onSubmit={submit} className="space-y-4">
+        <Field label="API key"><input className={inputClass} type="password" value={f.apiKey} onChange={set("apiKey")} required /></Field>
+        <Field label="Private key (stays in this browser)"><textarea className={inputClass} rows={3} autoComplete="off" value={f.privateKey} onChange={set("privateKey")} required /></Field>
+        <Field label="Part number"><input className={inputClass} value={f.partNumber} onChange={set("partNumber")} required /></Field>
+        <Field label="Serial number"><input className={inputClass} value={f.serialNumber} onChange={set("serialNumber")} required /></Field>
+        <Field label="Description"><input className={inputClass} value={f.description} onChange={set("description")} /></Field>
+        <Field label="Certificate SHA-256 (optional)"><input className={inputClass} value={f.certificateHash} onChange={set("certificateHash")} /></Field>
+        <Button disabled={busy}>{busy ? "SIGNING..." : "SIGN_AND_REGISTER"}</Button>
+      </form>
+      {status && <p className={`text-xs font-mono break-all ${status.startsWith("ERROR") ? "text-rose-400" : "text-slate-300"}`}>{status}</p>}
+      {done && (
+        <div className="space-y-2 border-t border-slate-800 pt-4">
+          <p className="text-xs font-mono text-slate-400 break-all">Part ID: <span className="text-white">{done.id}</span></p>
+          <div className="grid grid-cols-1 gap-2">
+            <Link href={done.verify} className="block text-center bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-mono font-bold text-xs py-2.5 rounded">VIEW_VERIFICATION_PAGE</Link>
+            <Link href={`/dashboard/events/new?partId=${done.id}`} className="block text-center border border-slate-700 hover:border-emerald-500 text-slate-200 font-mono text-xs py-2.5 rounded">ADD_AN_EVENT_TO_THIS_PART</Link>
+          </div>
         </div>
-        <form onSubmit={handleSubmit} className="bg-slate-900/80 border border-slate-800 rounded-lg p-6 space-y-4 shadow-xl">
-          <div>
-            <label className="block text-xs font-mono uppercase tracking-wider text-slate-400 mb-1.5">Part Number</label>
-            <input type="text" className={inputClass} value={partNumber} onChange={(e) => setPartNumber(e.target.value)} required />
-          </div>
-          <div>
-            <label className="block text-xs font-mono uppercase tracking-wider text-slate-400 mb-1.5">Serial Number</label>
-            <input type="text" className={inputClass} value={serialNumber} onChange={(e) => setSerialNumber(e.target.value)} required />
-          </div>
-          <div>
-            <label className="block text-xs font-mono uppercase tracking-wider text-slate-400 mb-1.5">Description (optional)</label>
-            <input type="text" className={inputClass} value={description} onChange={(e) => setDescription(e.target.value)} />
-          </div>
-          <div>
-            <label className="block text-xs font-mono uppercase tracking-wider text-slate-400 mb-1.5">Organization ID</label>
-            <input type="text" className={inputClass} value={organizationId} onChange={(e) => setOrganizationId(e.target.value)} required />
-          </div>
-          <div>
-            <label className="block text-xs font-mono uppercase tracking-wider text-slate-400 mb-1.5">Organization Private Key (PEM)</label>
-            <textarea className={`${inputClass} h-24`} value={privateKeyPem} onChange={(e) => setPrivateKeyPem(e.target.value)} required />
-          </div>
-          <button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-mono font-bold text-xs uppercase tracking-wider py-3 rounded transition">
-            Register Part
-          </button>
-        </form>
-        {status && <p className="text-sm font-mono text-emerald-400">{status}</p>}
-      </div>
-    </main>
+      )}
+    </Shell>
   );
 }

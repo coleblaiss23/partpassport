@@ -3,17 +3,20 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Organization {
-  id        String      @id @default(cuid())
-  name      String
-  publicKey String      // PEM format
-  createdAt DateTime    @default(now())
-  parts     Part[]      @relation("CurrentCustodian")
-  events    PartEvent[]
+  id          String             @id @default(cuid())
+  name        String
+  publicKey   String // Ed25519 PEM. Private key is never stored.
+  apiKeyHash  String             @unique // SHA-256 of the org API key
+  active      Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+  parts       Part[]             @relation("CurrentCustodian")
+  events      PartEvent[]
+  checks      CertificateCheck[]
 }
 
 model Part {
@@ -21,6 +24,7 @@ model Part {
   partNumber   String
   serialNumber String
   description  String?
+  scrapped     Boolean       @default(false)
   currentOrgId String?
   currentOrg   Organization? @relation("CurrentCustodian", fields: [currentOrgId], references: [id])
   events       PartEvent[]
@@ -33,24 +37,41 @@ model PartEvent {
   id              String       @id @default(cuid())
   partId          String
   part            Part         @relation(fields: [partId], references: [id])
-  organizationId String
+  organizationId  String
   organization    Organization @relation(fields: [organizationId], references: [id])
-  eventType       String       // CREATED | REMOVED | INSPECTED | OVERHAULED | INSTALLED
+  seq             Int
+  eventType       String // CREATED | INSPECTED | REPAIRED | OVERHAULED | INSTALLED | REMOVED | SCRAPPED | SOLD | TRANSFERRED
   timestamp       DateTime
   prevEventHash   String?
   eventHash       String
-  signature       String       // Base64
-  data            String       // JSON stringified object for SQLite compatibility
-  certificateHash String?      // SHA-256 of attached PDF
+  signature       String // Base64 Ed25519
+  data            String // exact JSON text that was hashed (never re-serialized)
+  certificateHash String? // SHA-256 of attached PDF
   createdAt       DateTime     @default(now())
 
+  @@unique([partId, seq])
   @@index([partId, timestamp])
 }
+
+model CertificateCheck {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  fileName       String
+  sha256         String
+  extracted      String // JSON
+  redFlags       String // JSON array
+  createdAt      DateTime     @default(now())
+
+  @@index([organizationId])
+}
+
 model SafetyFlag {
   id               String   @id @default(cuid())
   partNumber       String
-  source           String   // "AD" or "SDR"
-  referenceId      String   // e.g. FAA AD number, or SDR control number
+  partNumberNorm   String
+  source           String // "AD" or "SDR"
+  referenceId      String
   description      String
   serialRangeStart String?
   serialRangeEnd   String?
@@ -58,5 +79,6 @@ model SafetyFlag {
   url              String?
   createdAt        DateTime @default(now())
 
-  @@index([partNumber])
+  @@unique([source, referenceId, partNumberNorm])
+  @@index([partNumberNorm])
 }
