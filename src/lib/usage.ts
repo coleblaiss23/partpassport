@@ -1,34 +1,25 @@
-import { prisma } from "@/lib/prisma";
-import { PLAN_LIMITS, effectivePlan, PlanType } from "@/lib/planLimits";
+import { prisma } from "./prisma";
+import { PLAN_LIMITS, effectivePlan, evaluateLimit, monthStart, type LimitKind } from "./planLimits";
 
-export async function getUsage(orgId: string) {
-  const eventsCount = await prisma.partEvent.count({ where: { organizationId: orgId } });
-  return {
-    eventsLogged: eventsCount,
-    checks: 0,
-    registrations: eventsCount,
-  };
+/** Usage this calendar month (UTC), counted from tables we already keep. */
+export async function getUsage(orgId: string, now = new Date()) {
+  const from = monthStart(now);
+  const [checks, registrations] = await Promise.all([
+    prisma.certificateCheck.count({ where: { organizationId: orgId, createdAt: { gte: from } } }),
+    prisma.partEvent.count({ where: { organizationId: orgId, eventType: "CREATED", createdAt: { gte: from } } }),
+  ]);
+  return { checks, registrations };
 }
 
-export async function gate(orgOrId: any, action?: string) {
-  const orgId = typeof orgOrId === "string" ? orgOrId : orgOrId?.id;
-  const plan: PlanType = effectivePlan(orgOrId);
-  const usage = await getUsage(orgId);
-  const limits = PLAN_LIMITS[plan];
-
-  const used = action === "checks" ? usage.checks : usage.registrations;
-  const limit = action === "checks" ? limits.checks : limits.registrations;
-
-  return {
-    allowed: used < limit,
-    plan,
-    usage,
-    used,
-    limit,
-    message: used >= limit ? `Plan limit reached for ${action || "this feature"}` : undefined,
-  };
+/** Soft limit: two simultaneous requests at the boundary could each slip through. Fine for plan limits. */
+export async function gate(org: { id: string; plan?: string | null; subStatus?: string | null }, kind: LimitKind) {
+  const plan = effectivePlan(org);
+  const usage = await getUsage(org.id);
+  return { plan, usage, ...evaluateLimit(kind, usage[kind], PLAN_LIMITS[plan][kind]) };
 }
 
-export async function globalChecksToday() {
-  return 0;
+/** Checks across ALL organizations today (UTC). Protects you from a runaway AI bill. */
+export async function globalChecksToday(now = new Date()) {
+  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  return prisma.certificateCheck.count({ where: { createdAt: { gte: start } } });
 }

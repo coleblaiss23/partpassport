@@ -10,7 +10,7 @@ type Ctx = {
   unlock: (passphrase: string) => Promise<void>;
   lock: () => void;
   signOut: () => Promise<void>;
-  signedPost: (prepareUrl: string, commitUrl: string, body: object) => Promise<any>;
+  signedPost: <T = unknown>(prepareUrl: string, commitUrl: string, body: object) => Promise<T>;
   sign: (payload: { partId: string; eventHash: string; timestamp: string }) => Promise<string>;
 };
 
@@ -69,9 +69,9 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
     lock(); setOrg(null); setHasVault(false);
   };
 
-  const signedPost: Ctx["signedPost"] = async (prepareUrl, commitUrl, body) => {
+  const signedPost: Ctx["signedPost"] = async <T,>(prepareUrl: string, commitUrl: string, body: object) => {
     if (!pem.current) throw new Error("Your key is locked. Enter your passphrase to unlock it.");
-    return prepareSignCommit({ privateKey: pem.current, prepareUrl, commitUrl, body });
+    return (await prepareSignCommit({ privateKey: pem.current, prepareUrl, commitUrl, body })) as T;
   };
 
   // Cached key import: much faster when signing thousands of records

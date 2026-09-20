@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint src scripts",
     "test": "vitest",
     "test:run": "vitest run",
     "typecheck": "tsc --noEmit",
@@ -19,10 +19,11 @@
     "smoke": "tsx --env-file=.env scripts/smoke.ts",
     "seed:bulk": "tsx --env-file=.env scripts/seed-bulk.ts",
     "loadtest": "tsx --env-file=.env scripts/loadtest.ts",
-    "org:verify": "tsx --env-file=.env scripts/verify-org.ts"
-  },
-  "prisma": {
-    "seed": "tsx --env-file=.env scripts/create-org.ts \"Demo Org\""
+    "org:verify": "tsx --env-file=.env scripts/verify-org.ts",
+    "check": "npm run lint && npm run typecheck && npm run test:run",
+    "org:plan": "tsx --env-file=.env scripts/set-plan.ts",
+    "org:list": "tsx --env-file=.env scripts/list-orgs.ts",
+    "leads": "tsx --env-file=.env scripts/leads.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.127.0",

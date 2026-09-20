@@ -5,6 +5,7 @@ import SigningGate from "@/components/SigningGate";
 import { useVault } from "@/components/VaultProvider";
 import { Card, PageHeader, btnPrimary, btnSecondary, inputCls } from "@/components/ui";
 import { parseCsv, rowsToParts } from "@/lib/csv";
+import type { Draft } from "@/lib/eventService";
 
 const CHUNK = 100, MAX_ROWS = 50_000;
 type Row = { partNumber: string; serialNumber: string; description: string; certificateHash: string };
@@ -44,7 +45,7 @@ function Importer() {
         const pj = await pr.json();
         if (!pr.ok) throw new Error(pj.error ?? "Prepare failed");
         const toCommit: { draft: unknown; signature: string; idx: number }[] = [];
-        for (const [k, res] of (pj.results as { ok: boolean; draft?: any; error?: string }[]).entries()) {
+        for (const [k, res] of (pj.results as { ok: boolean; draft?: Draft; error?: string }[]).entries()) {
           if (res.ok && res.draft) toCommit.push({ draft: res.draft, signature: await sign({ partId: res.draft.partId, eventHash: res.draft.eventHash, timestamp: res.draft.timestamp }), idx: k });
           else record(res.error ?? "Rejected", k);
         }

@@ -18,7 +18,7 @@ export default function ScannerPage() {
   const [ai, setAi] = useState<{ mode: string; message: string } | null>(null);
   const [drag, setDrag] = useState(false);
   const ref = useRef<Item[]>([]);
-  ref.current = items;
+  useEffect(() => { ref.current = items; }, [items]);
 
   useEffect(() => { fetch("/api/ai-status").then((r) => r.json()).then(setAi).catch(() => {}); }, []);
   useEffect(() => () => ref.current.forEach((i) => URL.revokeObjectURL(i.url)), []);

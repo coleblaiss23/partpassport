@@ -52,3 +52,15 @@ bulk-sample.json
 
 bulk-credentials.json
 bulk-sample.json
+
+# local tooling and secrets
+.env
+demo-credentials.json
+bulk-credentials.json
+bulk-sample.json
+.claude/
+.cursor/
+.devin/
+.agents/
+AGENTS.md
+CLAUDE.md

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { interpretStripeEvent, verifyStripeSignature } from "@/lib/stripe";
+import { interpretStripeEvent, verifyStripeSignature, type StripeEventLike } from "@/lib/stripe";
 
 // In Stripe: Developers > Webhooks > add endpoint <your-domain>/api/webhooks/stripe
 // Events: checkout.session.completed, customer.subscription.created/updated/deleted, invoice.paid, invoice.payment_failed
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   if (!secret || !verifyStripeSignature(raw, req.headers.get("stripe-signature"), secret))
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
 
-  let evt: { id: string; type: string; data: { object: Record<string, any> } };
+  let evt: StripeEventLike;
   try { evt = JSON.parse(raw); } catch { return NextResponse.json({ error: "Bad JSON" }, { status: 400 }); }
 
   try { await prisma.stripeEvent.create({ data: { id: evt.id, type: evt.type } }); }

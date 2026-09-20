@@ -1,24 +1,17 @@
-import { prisma } from "@/lib/prisma";
-import { generateKeypair, newApiKey, hashApiKey } from "@/lib/signing";
+import { prisma } from "./prisma";
+import { generateKeypair } from "./signing";
+import { hashKey, newApiKey } from "./auth";
+import type { PlanId } from "./planLimits";
 
-export async function createOrgWithKeys(name: string, plan: any = "PILOT") {
-  const keypair = generateKeypair();
-  const rawKey = newApiKey();
-  const hashed = hashApiKey(rawKey);
-
+/** Creates an organization, its signing key pair (private key returned once, never stored) and a default API key. */
+export async function createOrgWithKeys(name: string, plan: PlanId = "PILOT", faaCertNumber?: string | null) {
+  const { publicKey, privateKey } = generateKeypair();
+  const apiKey = newApiKey();
   const org = await prisma.organization.create({
     data: {
-      name,
-      publicKey: keypair.publicKey,
-      plan: plan as any,
-      apiKeys: {
-        create: {
-          keyHash: hashed,
-          name: "Default Key",
-        } as any,
-      },
+      name, plan, publicKey, faaCertNumber: faaCertNumber ?? null,
+      apiKeys: { create: { name: "Default", prefix: apiKey.slice(0, 12), hash: hashKey(apiKey) } },
     },
   });
-
-  return { org, apiKey: rawKey, privateKey: keypair.privateKey };
+  return { org, apiKey, privateKey };
 }

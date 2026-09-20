@@ -4,6 +4,7 @@ import { normPN, serialInRange } from "@/lib/normalize";
 import type { Extracted } from "@/lib/extract";
 
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Audit report | PartPassport", robots: { index: false, follow: false } };
 
 export default async function ReportPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -43,7 +44,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
           {rows.map(([k, v]) => <tr key={k} className="border-b border-slate-800"><td className="p-2 text-slate-400 font-mono w-40">{k}</td><td className="p-2">{v == null || v === "" ? "not found" : String(v)}</td></tr>)}
         </tbody></table>
         <p className="text-xs font-mono text-slate-500 break-all">File SHA-256: {check.sha256}</p>
-        <p className="text-xs text-slate-500">This report is an automated records review. It is not an airworthiness determination. A qualified, authorized person must decide whether a part may be installed.</p>
+        <p className="text-xs text-slate-500">This report is an automated records review. It is not an airworthiness determination. Safety-data matches cover only the FAA and other sources imported into PartPassport and are not exhaustive. A qualified, authorized person must decide whether a part may be installed.</p>
       </div>
     </main>
   );

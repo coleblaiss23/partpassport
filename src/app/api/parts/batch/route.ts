@@ -14,5 +14,5 @@ export async function POST(request: Request) {
   if (b.items.length > MAX_BATCH) return NextResponse.json({ error: `At most ${MAX_BATCH} items per request` }, { status: 400 });
   const g = await gate(org, "registrations"); // re-checked so saved drafts cannot skip the plan limit
   const allowance = Math.max(0, PLAN_LIMITS[g.plan].registrations - g.usage.registrations);
-  return NextResponse.json({ results: await commitBatch(org, b.items, allowance) });
+  return NextResponse.json({ results: await commitBatch(org, b.items as Parameters<typeof commitBatch>[1], allowance) });
 }

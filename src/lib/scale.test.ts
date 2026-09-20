@@ -1,12 +1,10 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { createHmac } from "crypto";
-
-vi.mock("./prisma", () => ({ prisma: {} }));
 
 import { parseCsv, rowsToParts } from "./csv";
 import { verifyStripeSignature, interpretStripeEvent } from "./stripe";
 import { generateChain } from "./bulkGen";
-import { checkChain } from "./verifyChain";
+import { checkChain } from "./chainCheck";
 import { generateKeypair } from "./signing";
 
 describe("csv", () => {

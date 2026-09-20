@@ -7,7 +7,7 @@ export async function POST(request: Request, props: { params: Promise<{ id: stri
   const { id } = await props.params;
   const b = await readJson(request);
   if (!b || typeof b.eventType !== "string") return send({ status: 400, error: "eventType required" });
-  const data = b.data && typeof b.data === "object" ? b.data : {};
-  const draft = await buildDraft(org, id, b.eventType, data, b.certificateHash ?? null);
+  const data = b.data && typeof b.data === "object" ? (b.data as Record<string, unknown>) : {};
+  const draft = await buildDraft(org, id, b.eventType, data, typeof b.certificateHash === "string" ? b.certificateHash : null);
   return send("error" in draft ? draft : { draft });
 }

@@ -16,7 +16,7 @@ export async function buildAuditPdf(r: VerifyResult, verifyUrl: string): Promise
   let page = pdf.addPage([W, H]);
   let y = H - M;
 
-  const mark = () => page.drawText("Part Passport  |  VERIFICATION LOG", { x: 120, y: 250, size: 30, font: bold, color: rgb(0.94, 0.94, 0.95), rotate: degrees(35) });
+  const mark = () => page.drawText("PartPassport  |  VERIFICATION LOG", { x: 70, y: 260, size: 42, font: bold, color: rgb(0.94, 0.94, 0.95), rotate: degrees(35) });
   mark();
   const ensure = (need: number) => { if (y - need < 70) { page = pdf.addPage([W, H]); mark(); y = H - M; } };
   const text = (t: string, o: { x?: number; size?: number; font?: typeof reg; color?: ReturnType<typeof rgb> } = {}) =>
@@ -65,7 +65,7 @@ export async function buildAuditPdf(r: VerifyResult, verifyUrl: string): Promise
 
   const pages = pdf.getPages();
   pages.forEach((p, i) => {
-    p.drawText(safe("Part Passport provides cryptographic record integrity and does not certify airworthiness. It is not an FAA or EASA approved document."), { x: M, y: 40, size: 7, font: reg, color: grey });
+    p.drawText(safe("PartPassport provides cryptographic record integrity and does not certify airworthiness. It is not an FAA or EASA approved document."), { x: M, y: 40, size: 7, font: reg, color: grey });
     p.drawText(`Page ${i + 1} of ${pages.length}`, { x: W - M - 50, y: 28, size: 7, font: reg, color: grey });
   });
   return pdf.save();

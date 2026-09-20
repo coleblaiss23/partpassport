@@ -18,7 +18,12 @@ export default function ApiKeysPage() {
   const [copied, setCopied] = useState(false);
 
   const load = useCallback(async () => { const r = await fetch("/api/keys"); if (r.ok) setD(await r.json()); }, []);
-  useEffect(() => { if (v.org) load(); }, [v.org, load]);
+  useEffect(() => {
+    if (!v.org) return;
+    let alive = true;
+    fetch("/api/keys").then((r) => (r.ok ? r.json() : null)).then((j) => { if (alive && j) setD(j); }).catch(() => {});
+    return () => { alive = false; };
+  }, [v.org]);
 
   async function create(label = name) {
     setErr(""); setCopied(false);

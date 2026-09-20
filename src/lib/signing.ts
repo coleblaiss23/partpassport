@@ -1,37 +1,49 @@
-import crypto from "crypto";
+import {
+  generateKeyPairSync,
+  sign,
+  verify,
+  createPrivateKey,
+  createPublicKey,
+} from "crypto";
 
-export function newApiKey(): string {
-  return `pk_${crypto.randomBytes(24).toString("hex")}`;
-}
+export type KeyPair = {
+  publicKey: string;
+  privateKey: string;
+};
 
-export function hashApiKey(key: string): string {
-  return crypto.createHash("sha256").update(key).digest("hex");
-}
-
-export function generateKeypair(): { publicKey: string; privateKey: string } {
-  const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
-    modulusLength: 2048,
+export function generateKeypair(): KeyPair {
+  const { publicKey, privateKey } = generateKeyPairSync("ed25519", {
     publicKeyEncoding: { type: "spki", format: "pem" },
     privateKeyEncoding: { type: "pkcs8", format: "pem" },
   });
   return { publicKey, privateKey };
 }
 
-export function signPayload(payload: any, privateKey: string): string {
-  const str = typeof payload === "string" ? payload : JSON.stringify(payload);
-  const signer = crypto.createSign("SHA256");
-  signer.update(str);
-  signer.end();
-  return signer.sign(privateKey, "base64");
+function stableStringify(obj: object): string {
+  return JSON.stringify(obj, Object.keys(obj).sort());
 }
 
-export function verifySignature(payload: any, signature: string, publicKey: string): boolean {
+export function signPayload(payload: object, privateKeyPem: string): string {
+  const data = stableStringify(payload);
+  const key = createPrivateKey(privateKeyPem);
+  const signature = sign(null, Buffer.from(data), key);
+  return signature.toString("base64");
+}
+
+export function verifySignature(
+  payload: object,
+  signatureBase64: string,
+  publicKeyPem: string
+): boolean {
   try {
-    const str = typeof payload === "string" ? payload : JSON.stringify(payload);
-    const verifier = crypto.createVerify("SHA256");
-    verifier.update(str);
-    verifier.end();
-    return verifier.verify(publicKey, signature, "base64");
+    const data = stableStringify(payload);
+    const key = createPublicKey(publicKeyPem);
+    return verify(
+      null,
+      Buffer.from(data),
+      key,
+      Buffer.from(signatureBase64, "base64")
+    );
   } catch {
     return false;
   }

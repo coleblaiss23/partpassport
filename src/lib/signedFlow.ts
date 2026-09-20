@@ -30,7 +30,7 @@ export async function prepareSignCommit(o: {
   const d = pj.draft;
   const signature = await signInBrowser({ partId: d.partId, eventHash: d.eventHash, timestamp: d.timestamp }, o.privateKey);
   const c = await fetch(o.commitUrl, { method: "POST", headers, body: JSON.stringify({ draft: d, signature }) });
-  const cj = await c.json();
-  if (!c.ok) throw new Error(cj.error ?? "Commit failed");
+  const cj = (await c.json()) as Record<string, unknown>;
+  if (!c.ok) throw new Error(String(cj.error ?? "Commit failed"));
   return cj;
 }

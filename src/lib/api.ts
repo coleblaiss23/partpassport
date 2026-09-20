@@ -11,7 +11,7 @@ export function send(result: object | Fail) {
   return NextResponse.json(rest, { status: status ?? 200 });
 }
 
-export async function readJson(req: Request): Promise<Record<string, any> | null> {
+export async function readJson(req: Request): Promise<Record<string, unknown> | null> {
   try { return await req.json(); } catch { return null; }
 }
 export { orgFromRequest };

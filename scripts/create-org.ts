@@ -1,37 +1,18 @@
+// Usage: npm run org:create -- "Org Name" [PILOT|PRO|ENTERPRISE]
 import { PrismaClient } from "@prisma/client";
-import { generateKeypair, newApiKey, hashApiKey } from "../src/lib/signing";
+import { createOrgWithKeys } from "../src/lib/orgs";
+import type { PlanId } from "../src/lib/planLimits";
 
 const prisma = new PrismaClient();
-
-async function main() {
-  const orgName = process.argv[2] || "Demo Org";
-  const { publicKey } = generateKeypair();
-  const rawApiKey = newApiKey();
-  const apiKeyHash = hashApiKey(rawApiKey);
-
-  const org = await prisma.organization.create({
-    data: {
-      name: orgName,
-      publicKey,
-      plan: "PILOT",
-      verification: "UNVERIFIED",
-      apiKeys: {
-        create: {
-          name: "Default Key",
-          prefix: rawApiKey.slice(0, 8),
-          hash: apiKeyHash,
-        },
-      },
-    },
-  });
-
-  console.log("Created Org ID:", org.id);
-  console.log("API Key (save this now):", rawApiKey);
+const [name, plan = "PILOT"] = process.argv.slice(2);
+if (!name || !["PILOT", "PRO", "ENTERPRISE"].includes(plan)) {
+  console.error('Usage: npm run org:create -- "Org Name" [PILOT|PRO|ENTERPRISE]');
+  process.exit(1);
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(() => prisma.$disconnect());
+(async () => {
+  const { org, apiKey, privateKey } = await createOrgWithKeys(name, plan as PlanId);
+  console.log("Organization ID:", org.id, `(plan: ${org.plan})`);
+  console.log("API KEY (save now):", apiKey);
+  console.log("\nPRIVATE KEY (save now, never stored):\n" + privateKey);
+})().finally(() => prisma.$disconnect());

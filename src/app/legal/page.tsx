@@ -1,31 +1,16 @@
 import Link from "next/link";
+import { Card } from "@/components/ui";
 
-export default function LegalPage() {
+export const metadata = { title: "Legal | PartPassport" };
+
+export default function LegalHub() {
   return (
-    <main className="min-h-[calc(100vh-3.5rem)] bg-slate-950 text-slate-100">
-      <div className="mx-auto max-w-2xl px-4 py-14 sm:px-6 space-y-6">
-        <h1 className="text-3xl font-bold tracking-tight">Terms and limits</h1>
-        <div className="space-y-4 text-sm leading-relaxed text-slate-400">
-          <p>
-            PartPassport records documentation events and cryptographic hashes
-            related to aircraft parts. A verified chain means the recorded events
-            and signatures check mathematically. It does not mean a part is
-            airworthy, eligible for installation, or free of unapproved parts.
-          </p>
-          <p>
-            Airworthiness and return-to-service decisions remain with persons and
-            organizations authorized under applicable aviation regulations
-            (including 14 CFR Parts 21, 43, and 145 and equivalent authorities).
-          </p>
-          <p>
-            Users are responsible for the accuracy of data they submit and for
-            only uploading documents they are permitted to process.
-          </p>
-        </div>
-
-        <Link href="/" className="text-sm text-emerald-500 hover:underline">
-          ← Home
-        </Link>
+    <main className="mx-auto max-w-2xl space-y-5 px-4 py-10">
+      <h1 className="text-3xl font-semibold tracking-tight text-white">Legal</h1>
+      <Card className="border-amber-700"><p className="text-sm text-amber-200">PartPassport provides cryptographic record integrity and does not certify airworthiness. It is not an FAA or EASA approved document, and it does not replace required inspections or approvals.</p></Card>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Link href="/terms"><Card className="hover:border-emerald-600"><h2 className="font-medium text-white">Terms of Service</h2><p className="mt-1 text-sm text-slate-400">Rules for using the service.</p></Card></Link>
+        <Link href="/privacy"><Card className="hover:border-emerald-600"><h2 className="font-medium text-white">Privacy Policy</h2><p className="mt-1 text-sm text-slate-400">What we collect and how documents are processed.</p></Card></Link>
       </div>
     </main>
   );
