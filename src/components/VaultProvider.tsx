@@ -1,7 +1,7 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { decryptPrivateKey, encryptPrivateKey, privateKeyMatches, type VaultBlob } from "@/lib/keyVault";
-import { prepareSignCommit } from "@/lib/signedFlow";
+import { makeSigner, prepareSignCommit } from "@/lib/signedFlow";
 
 type Org = { id: string; name: string; publicKey: string };
 type Ctx = {
@@ -11,6 +11,7 @@ type Ctx = {
   lock: () => void;
   signOut: () => Promise<void>;
   signedPost: (prepareUrl: string, commitUrl: string, body: object) => Promise<any>;
+  sign: (payload: { partId: string; eventHash: string; timestamp: string }) => Promise<string>;
 };
 
 const VaultCtx = createContext<Ctx | null>(null);
@@ -29,6 +30,7 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
   const [hasVault, setHasVault] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
   const pem = useRef<string | null>(null);
+  const signer = useRef<Awaited<ReturnType<typeof makeSigner>> | null>(null);
 
   useEffect(() => {
     fetch("/api/session")
@@ -38,7 +40,7 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
       .finally(() => setReady(true));
   }, []);
 
-  const lock = useCallback(() => { pem.current = null; setUnlocked(false); }, []);
+  const lock = useCallback(() => { pem.current = null; signer.current = null; setUnlocked(false); }, []);
 
   const connect: Ctx["connect"] = async (apiKey, privateKey, passphrase) => {
     if (passphrase.length < 8) throw new Error("Passphrase must be at least 8 characters");
@@ -72,5 +74,12 @@ export function VaultProvider({ children }: { children: React.ReactNode }) {
     return prepareSignCommit({ privateKey: pem.current, prepareUrl, commitUrl, body });
   };
 
-  return <VaultCtx.Provider value={{ ready, org, hasVault, unlocked, connect, unlock, lock, signOut, signedPost }}>{children}</VaultCtx.Provider>;
+  // Cached key import: much faster when signing thousands of records
+  const sign: Ctx["sign"] = async (payload) => {
+    if (!pem.current) throw new Error("Your key is locked. Enter your passphrase to unlock it.");
+    signer.current ??= await makeSigner(pem.current);
+    return signer.current(payload);
+  };
+
+  return <VaultCtx.Provider value={{ ready, org, hasVault, unlocked, connect, unlock, lock, signOut, signedPost, sign }}>{children}</VaultCtx.Provider>;
 }

@@ -14,7 +14,12 @@
     "org:create": "tsx --env-file=.env scripts/create-org.ts",
     "flags:import": "tsx --env-file=.env scripts/importSafetyFlags.ts",
     "test:e2e": "tsx --env-file=.env scripts/e2e.ts",
-    "seed:demo": "tsx --env-file=.env scripts/seed-demo.ts"
+    "seed:demo": "tsx --env-file=.env scripts/seed-demo.ts",
+    "doctor": "tsx --env-file=.env scripts/doctor.ts",
+    "smoke": "tsx --env-file=.env scripts/smoke.ts",
+    "seed:bulk": "tsx --env-file=.env scripts/seed-bulk.ts",
+    "loadtest": "tsx --env-file=.env scripts/loadtest.ts",
+    "org:verify": "tsx --env-file=.env scripts/verify-org.ts"
   },
   "prisma": {
     "seed": "tsx --env-file=.env scripts/create-org.ts \"Demo Org\""
@@ -24,6 +29,7 @@
     "@prisma/client": "^5.0.0",
     "geist": "^1.7.2",
     "next": "^15.5.25",
+    "pdf-lib": "^1.17.1",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },

@@ -2,18 +2,15 @@
 // Usage: npm run seed:demo      (writes demo-credentials.json, which is git-ignored)
 import { PrismaClient } from "@prisma/client";
 import { writeFileSync } from "fs";
-import { generateKeypair, signPayload } from "../src/lib/signing";
-import { hashKey, newApiKey } from "../src/lib/auth";
+import { signPayload } from "../src/lib/signing";
+import { createOrgWithKeys } from "../src/lib/orgs";
 import { buildDraft, commitDraft, isFail, type Draft } from "../src/lib/eventService";
 
 const prisma = new PrismaClient();
 const tag = Date.now().toString(36).slice(-4).toUpperCase();
 
 async function mkOrg(name: string) {
-  const { publicKey, privateKey } = generateKeypair();
-  const apiKey = newApiKey();
-  const org = await prisma.organization.create({ data: { name: `${name} (${tag})`, publicKey, apiKeyHash: hashKey(apiKey) } });
-  return { org, apiKey, privateKey };
+  return createOrgWithKeys(`${name} (${tag})`);
 }
 type O = Awaited<ReturnType<typeof mkOrg>>;
 
@@ -36,7 +33,8 @@ const create = (o: O, partNumber: string, serialNumber: string, description: str
   const urls: Record<string, string> = {};
 
   // 1. Clean, multi-owner history
-  const sn1 = `S-${tag}-1`;
+  const demoExists = await prisma.part.findUnique({ where: { partNumber_serialNumber: { partNumber: "DEMO-881-2001", serialNumber: "DEMO-0001" } } });
+  const sn1 = demoExists ? `S-${tag}-1` : "DEMO-0001"; // stable public sample: /verify/DEMO-881-2001/DEMO-0001
   const p1 = await create(mro, "DEMO-881-2001", sn1, "Fuel control unit (demo)");
   await add(mro, p1, "INSPECTED", { notes: "Incoming inspection, no defects" });
   await add(mro, p1, "OVERHAULED", { notes: "Overhauled per sample manual" });

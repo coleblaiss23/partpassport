@@ -3,15 +3,24 @@ import { createHash } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { AiNotConfigured, extractCert, localFlags } from "@/lib/extract";
 import { rateLimit } from "@/lib/rateLimit";
+import { gate, globalChecksToday } from "@/lib/usage";
 import { orgFromRequest, unauthorized } from "@/lib/api";
 
 const MAX_BYTES = 10 * 1024 * 1024;
-const err = (status: number, error: string) => NextResponse.json({ error }, { status });
+const err = (status: number, error: string, extra: object = {}) => NextResponse.json({ error, ...extra }, { status });
 
 export async function POST(request: Request) {
   const org = await orgFromRequest(request);
   if (!org) return unauthorized();
-  if (!rateLimit(`analyze:${org.id}`, 20, 60_000)) return err(429, "Rate limit: 20 per minute");
+  if (!(await rateLimit(`analyze:${org.id}`, 20, 60_000))) return err(429, "Rate limit: 20 per minute");
+
+  // Plan limit is checked before the (paid) AI call.
+  const g = await gate(org, "checks");
+  if (!g.allowed) return err(402, g.message!, { usage: g.usage, upgradeUrl: "/pricing" });
+
+  const cap = Number(process.env.AI_DAILY_CAP) || 500;
+  if ((await globalChecksToday()) >= cap) return err(503, "Daily analysis capacity reached. Please try again tomorrow or contact us.");
+
   try {
     const file = (await request.formData()).get("file");
     if (!(file instanceof File)) return err(400, "No file uploaded");
@@ -29,7 +38,9 @@ export async function POST(request: Request) {
         extracted: JSON.stringify({ ...data, _mode: mode }), redFlags: JSON.stringify(redFlags),
       },
     });
-    return NextResponse.json({ id: check.id, mode, certificateHash: sha256, extracted: data, redFlags });
+    const after = g.used + 1;
+    const warning = after >= Math.floor(g.limit * 0.8) ? `You have used ${after} of ${g.limit} certificate checks this month.` : undefined;
+    return NextResponse.json({ id: check.id, mode, certificateHash: sha256, extracted: data, redFlags, usage: { used: after, limit: g.limit }, warning });
   } catch (e) {
     console.error("[analyze] failed:", e);
     if (e instanceof AiNotConfigured) return err(503, e.message);

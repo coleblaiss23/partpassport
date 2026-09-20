@@ -7,7 +7,7 @@ async function main() {
   await prisma.certificateCheck.deleteMany().catch(() => {});
   await prisma.partEvent.deleteMany().catch(() => {});
   await prisma.part.deleteMany().catch(() => {});
-  await prisma.userOrg.deleteMany().catch(() => {});
+  // await prisma.userOrg.deleteMany().catch(() => {});
   await prisma.apiKey.deleteMany().catch(() => {});
   await prisma.auditLog.deleteMany().catch(() => {});
   await prisma.organization.deleteMany().catch(() => {});

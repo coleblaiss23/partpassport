@@ -18,13 +18,26 @@ function sameOrigin(req: Request) {
   try { return new URL(origin).host === req.headers.get("host"); } catch { return false; }
 }
 
+/** Looks up an organization by raw API key (ApiKey table; revoked keys are rejected). */
+export async function orgFromApiKey(raw: string) {
+  const key = await prisma.apiKey.findUnique({ where: { hash: hashKey(raw) }, include: { organization: true } });
+  if (!key || key.revokedAt || !key.organization.active) return null;
+  void prisma.apiKey.update({ where: { id: key.id }, data: { lastUsedAt: new Date() } }).catch(() => {});
+  return key.organization;
+}
+
 /** Accepts either "Authorization: Bearer pp_live_..." (integrations) or the browser session cookie. */
 export async function orgFromRequest(req: Request) {
   const bearer = /^Bearer (pp_live_[a-f0-9]{48})$/.exec(req.headers.get("authorization") ?? "");
-  if (bearer) {
-    const org = await prisma.organization.findUnique({ where: { apiKeyHash: hashKey(bearer[1]) } });
-    return org?.active ? org : null;
-  }
+  if (bearer) return orgFromApiKey(bearer[1]);
+  const orgId = readSession(cookieValue(req, SESSION_COOKIE));
+  if (!orgId || !sameOrigin(req)) return null;
+  const org = await prisma.organization.findUnique({ where: { id: orgId } });
+  return org?.active ? org : null;
+}
+
+/** Browser-session only (no Bearer keys). Used for sensitive actions such as API key management. */
+export async function sessionOrgFromRequest(req: Request) {
   const orgId = readSession(cookieValue(req, SESSION_COOKIE));
   if (!orgId || !sameOrigin(req)) return null;
   const org = await prisma.organization.findUnique({ where: { id: orgId } });

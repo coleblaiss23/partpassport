@@ -1,15 +1,21 @@
 // Browser-side signing. The private key NEVER leaves the user's machine.
-export async function signInBrowser(
-  payload: { partId: string; eventHash: string; timestamp: string },
-  privateKeyPem: string
-): Promise<string> {
+type Payload = { partId: string; eventHash: string; timestamp: string };
+
+/** Imports the key once, then signs quickly (used for bulk imports). */
+export async function makeSigner(privateKeyPem: string) {
   const b64 = privateKeyPem.replace(/-----[^-]+-----/g, "").replace(/\s+/g, "");
   const der = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
   const key = await crypto.subtle.importKey("pkcs8", der, { name: "Ed25519" } as unknown as AlgorithmIdentifier, false, ["sign"]);
-  // Must match server-side stableStringify in src/lib/signing.ts
-  const msg = new TextEncoder().encode(JSON.stringify(payload, Object.keys(payload).sort()));
-  const sig = await crypto.subtle.sign("Ed25519", key, msg);
-  return btoa(String.fromCharCode(...new Uint8Array(sig)));
+  return async (payload: Payload): Promise<string> => {
+    // Must match server-side stableStringify in src/lib/signing.ts
+    const msg = new TextEncoder().encode(JSON.stringify(payload, Object.keys(payload).sort()));
+    const sig = await crypto.subtle.sign("Ed25519", key, msg);
+    return btoa(String.fromCharCode(...new Uint8Array(sig)));
+  };
+}
+
+export async function signInBrowser(payload: Payload, privateKeyPem: string): Promise<string> {
+  return (await makeSigner(privateKeyPem))(payload);
 }
 
 /** Authenticates with the session cookie (or an explicit apiKey for scripts). */

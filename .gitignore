@@ -46,3 +46,9 @@ prisma/*.db-journal
 
 !.env.example
 demo-credentials.json
+
+bulk-credentials.json
+bulk-sample.json
+
+bulk-credentials.json
+bulk-sample.json
