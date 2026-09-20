@@ -1,16 +1,37 @@
 import { PrismaClient } from "@prisma/client";
-import { generateKeypair } from "../src/lib/signing";
-import { hashKey, newApiKey } from "../src/lib/auth";
+import { generateKeypair, newApiKey, hashApiKey } from "../src/lib/signing";
 
 const prisma = new PrismaClient();
-const name = process.argv[2];
-if (!name) { console.error('Usage: npm run org:create -- "Org Name"'); process.exit(1); }
 
-(async () => {
-  const { publicKey, privateKey } = generateKeypair();
-  const apiKey = newApiKey();
-  const org = await prisma.organization.create({ data: { name, publicKey, apiKeyHash: hashKey(apiKey) } });
-  console.log("Organization ID:", org.id);
-  console.log("API KEY (save now):", apiKey);
-  console.log("\nPRIVATE KEY (save now, never stored):\n" + privateKey);
-})().finally(() => prisma.$disconnect());
+async function main() {
+  const orgName = process.argv[2] || "Demo Org";
+  const { publicKey } = generateKeypair();
+  const rawApiKey = newApiKey();
+  const apiKeyHash = hashApiKey(rawApiKey);
+
+  const org = await prisma.organization.create({
+    data: {
+      name: orgName,
+      publicKey,
+      plan: "PILOT",
+      verification: "UNVERIFIED",
+      apiKeys: {
+        create: {
+          name: "Default Key",
+          prefix: rawApiKey.slice(0, 8),
+          hash: apiKeyHash,
+        },
+      },
+    },
+  });
+
+  console.log("Created Org ID:", org.id);
+  console.log("API Key (save this now):", rawApiKey);
+}
+
+main()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(() => prisma.$disconnect());

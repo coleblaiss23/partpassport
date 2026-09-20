@@ -7,30 +7,104 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum OrgVerification {
+  UNVERIFIED
+  PENDING
+  VERIFIED
+}
+
+enum Plan {
+  PILOT
+  PRO
+  ENTERPRISE
+}
+
 model Organization {
-  id          String             @id @default(cuid())
-  name        String
-  publicKey   String // Ed25519 PEM. Private key is never stored.
-  apiKeyHash  String             @unique // SHA-256 of the org API key
-  active      Boolean            @default(true)
-  createdAt   DateTime           @default(now())
-  parts       Part[]             @relation("CurrentCustodian")
-  events      PartEvent[]
-  checks      CertificateCheck[]
+  id                 String           @id @default(cuid())
+  name               String
+  clerkOrgId         String?          @unique
+  faaCertNumber      String?
+  easaApprovalNumber String?
+  verification       OrgVerification  @default(UNVERIFIED)
+  verifiedAt         DateTime?
+  publicKey          String
+  encPrivateKey      String?
+  keyVersion         Int              @default(1)
+  active             Boolean          @default(true)
+  plan               Plan             @default(PILOT)
+  stripeCustomerId   String?          @unique
+  stripeSubId        String?          @unique
+  subStatus          String?
+  currentPeriodEnd   DateTime?
+  createdAt          DateTime         @default(now())
+  apiKeys   ApiKey[]
+  members   UserOrg[]
+  parts     Part[]              @relation("CurrentCustodian")
+  events    PartEvent[]
+  checks    CertificateCheck[]
+  auditLogs AuditLog[]
+}
+
+model UserOrg {
+  id             String       @id @default(cuid())
+  clerkUserId    String
+  organizationId String
+  role           String       @default("MEMBER")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  @@unique([clerkUserId, organizationId])
+  @@index([clerkUserId])
+}
+
+model ApiKey {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  name           String
+  prefix         String
+  hash           String       @unique
+  createdAt      DateTime     @default(now())
+  lastUsedAt     DateTime?
+  revokedAt      DateTime?
+  @@index([organizationId])
+}
+
+model AuditLog {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  actorUserId    String?
+  action         String
+  meta           String?
+  createdAt      DateTime     @default(now())
+  @@index([organizationId, createdAt])
+}
+
+model StripeEvent {
+  id         String   @id
+  type       String
+  receivedAt DateTime @default(now())
 }
 
 model Part {
-  id           String        @id @default(cuid())
-  partNumber   String
-  serialNumber String
-  description  String?
-  scrapped     Boolean       @default(false)
-  currentOrgId String?
-  currentOrg   Organization? @relation("CurrentCustodian", fields: [currentOrgId], references: [id])
-  events       PartEvent[]
-  createdAt    DateTime      @default(now())
-
+  id              String        @id @default(cuid())
+  partNumber      String
+  serialNumber    String
+  description     String?
+  condition       String        @default("USM")
+  category        String        @default("COMPONENT")
+  currentStatus   String        @default("IN_INVENTORY")
+  tsnHours        Float?
+  csnCycles       Int?
+  lifeLimitHours  Float?
+  lifeLimitCycles Int?
+  currentOrgId    String?
+  currentOrg      Organization? @relation("CurrentCustodian", fields: [currentOrgId], references: [id])
+  ownerId         String?
+  events          PartEvent[]
+  createdAt       DateTime      @default(now())
   @@unique([partNumber, serialNumber])
+  @@index([ownerId])
+  @@index([currentOrgId])
 }
 
 model PartEvent {
@@ -39,46 +113,58 @@ model PartEvent {
   part            Part         @relation(fields: [partId], references: [id])
   organizationId  String
   organization    Organization @relation(fields: [organizationId], references: [id])
-  seq             Int
-  eventType       String // CREATED | INSPECTED | REPAIRED | OVERHAULED | INSTALLED | REMOVED | SCRAPPED | SOLD | TRANSFERRED
+  actorUserId     String?
+  eventType       String
   timestamp       DateTime
   prevEventHash   String?
   eventHash       String
-  signature       String // Base64 Ed25519
-  data            String // exact JSON text that was hashed (never re-serialized)
-  certificateHash String? // SHA-256 of attached PDF
+  signature       String
+  data            String
+  certificateHash String?
+  certLabel       String?
   createdAt       DateTime     @default(now())
-
-  @@unique([partId, seq])
   @@index([partId, timestamp])
-}
-
-model CertificateCheck {
-  id             String       @id @default(cuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  fileName       String
-  sha256         String
-  extracted      String // JSON
-  redFlags       String // JSON array
-  createdAt      DateTime     @default(now())
-
   @@index([organizationId])
 }
 
 model SafetyFlag {
-  id               String   @id @default(cuid())
+  id               String    @id @default(cuid())
   partNumber       String
-  partNumberNorm   String
-  source           String // "AD" or "SDR"
+  source           String
   referenceId      String
   description      String
   serialRangeStart String?
   serialRangeEnd   String?
-  issuedDate       DateTime
+  issuedDate       DateTime?
   url              String?
-  createdAt        DateTime @default(now())
+  severity         String    @default("WATCH")
+  createdAt        DateTime  @default(now())
+  @@index([partNumber])
+}
 
-  @@unique([source, referenceId, partNumberNorm])
-  @@index([partNumberNorm])
+model CertificateCheck {
+  id              String       @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  actorUserId     String?
+  fileName        String?
+  certificateHash String
+  partNumber      String?
+  serialNumber    String?
+  resultJson      String
+  flagged         Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+  @@index([organizationId, createdAt])
+  @@index([certificateHash])
+}
+
+model AuditRequest {
+  id           String   @id @default(cuid())
+  ownerId      String
+  partNumber   String
+  serialNumber String
+  notes        String?
+  status       String   @default("QUEUED")
+  createdAt    DateTime @default(now())
+  @@index([ownerId])
 }

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import "./globals.css";
+import Navbar from "@/components/Navbar";
 import NavBar from "@/components/NavBar";
 import { VaultProvider } from "@/components/VaultProvider";
 
@@ -14,6 +15,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body className="bg-slate-950 font-sans text-slate-100 antialiased">
+        <Navbar />
         <VaultProvider>
           <NavBar />
           {children}
