@@ -4,3 +4,12 @@
   --font-sans: var(--font-geist-sans, ui-sans-serif, system-ui, sans-serif);
   --font-mono: var(--font-geist-mono, ui-monospace, monospace);
 }
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: #020617;
+  color: #e2e8f0;
+}
