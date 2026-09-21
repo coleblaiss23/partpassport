@@ -64,3 +64,6 @@ bulk-sample.json
 .agents/
 AGENTS.md
 CLAUDE.md
+aircraft_db/
+*.accdb
+*.csv
