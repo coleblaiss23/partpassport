@@ -48,7 +48,7 @@ export default function Home() {
               </Link>
             </p>
           </div>
-          <p clssName="mt-4 text-sm text-slate-500">
+          <p className="mt-4 text-sm text-slate-500">
             Shop access:{" "}
             <Link href="/request-access" className="text-slate-300 hover:underline">
               request pilot access
