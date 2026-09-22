@@ -1,96 +1,138 @@
 import Link from "next/link";
 import PartSearch from "@/components/PartSearch";
-import { Card, btnPrimary, btnSecondary } from "@/components/ui";
+import { btnPrimary, btnSecondary } from "@/components/ui";
 
 const catches = [
-  ["Blank signature block", "No authorized signature in block 16, so the release means nothing."],
-  ["Dates that don't exist", "A release dated 02/31/2026, or one dated in the future."],
-  ["Serial numbers that disagree", "Block 11 says SN-4402, the remarks say SN-4420."],
-  ["Parts named in a safety directive", "Part and serial match an imported AD or service difficulty report."],
+  {
+    title: "Blank signature block",
+    detail: "No authorized signature in block 16 — the release is incomplete.",
+  },
+  {
+    title: "Impossible dates",
+    detail: "Values like 02/31/2026, or a release dated in the future.",
+  },
+  {
+    title: "Serial numbers that disagree",
+    detail: "Block 11 says one serial; remarks list another.",
+  },
+  {
+    title: "Safety data on the part number",
+    detail: "Part number matches an imported FAA unapproved-parts notice or related flag.",
+  },
 ];
-const roles = [
-  ["Receiving inspection", "A used actuator arrives with a certificate that looks fine at a glance. Drop the PDF in and get the problems in seconds, with the flagged blocks marked on the page."],
-  ["Parts traders and distributors", "Buyers hesitate when paperwork is thin. A signed history plus a clean report they can open with one link shortens the conversation."],
-  ["Repair station quality", "Each inspection, repair and transfer is signed by your organization, so the record holds up when someone asks who did what and when."],
-];
-const findings = ["Approval/authorization number is missing", "Authorized signature appears to be missing", "Date \"02/31/2026\" is not a valid calendar date", "Serial in remarks (SN-4420) does not match serial field (SN-4402)"];
 
 export default function Home() {
   return (
-    <main>
-      <section className="mx-auto grid max-w-6xl items-center gap-12 px-4 pb-10 pt-16 lg:grid-cols-[1.15fr_1fr]">
-        <div className="space-y-6">
-          <p className="text-sm font-medium text-emerald-400">Release certificate review for aircraft parts</p>
-          <h1 className="text-4xl font-semibold leading-[1.1] tracking-tight text-white sm:text-5xl">Catch paperwork problems before the part is on your shelf.</h1>
-          <p className="max-w-xl text-lg text-slate-400">PartPassport reads 8130-3 and EASA Form 1 certificates, flags what is missing or doesn&apos;t add up, and gives each part a signed history that anyone can check.</p>
-          <div className="flex flex-wrap gap-3">
-            <Link href="/request-access" className={btnPrimary}>Request access</Link>
-            <Link href="/sample-report" className={btnSecondary}>See a sample report</Link>
+    <main className="bg-slate-950">
+      <section className="border-b border-slate-900">
+        <div className="mx-auto max-w-2xl px-4 pb-12 pt-14">
+          <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+            Check relee certificates before the part hits the shelf
+          </h1>
+          <p className="mt-4 text-base leading-relaxed text-slate-400">
+            PartPassport reads FAA Form 8130-3 and EASA Form 1 PDFs, flags missing
+            blocks and internal contradictions, and keeps a signed event history per
+            serial. It does not determine airworthiness.
+          </p>
+          <div className="mt-8 rounded border border-slate-800 bg-slate-900/60 p-4">
+            <p className="mb-3 text-sm text-slate-300">Look up a part</p>
+            <PartSearch />
+            <p className="mt-3 text-sm text-slate-500">
+              No serial handy?{" "}
+              <Link href="/sample-report" className="text-emerald-500 hover:underline">
+                Sample certificate report
+              </Link>
+              {" · "}
+              <Link href="/sample-part" className="text-emerald-500 hover:underline">
+                Sample signed history
+              </Link>
+            </p>
           </div>
-          <p className="text-sm text-slate-500">Pilot access is free.</p>
-        </div>
-        <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-5 shadow-2xl shadow-black/40">
-          <div className="flex items-center justify-between">
-            <p className="font-mono text-sm text-white">DEMO-CERT-200 / SN-4402</p>
-            <span className="rounded-full border border-amber-800 bg-amber-950 px-2 py-0.5 text-xs text-amber-300">4 findings</span>
-          </div>
-          <ul className="mt-4 space-y-2.5">
-            {findings.map((f) => (
-              <li key={f} className="flex gap-2.5 text-sm text-slate-300"><span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-rose-500" aria-hidden="true" />{f}</li>
-            ))}
-          </ul>
-          <p className="mt-4 border-t border-slate-800 pt-3 text-xs text-slate-500">Example output from a fictional certificate</p>
+          <p className="mt-4 text-sm text-slate-500">
+            Shop access:{" "}
+            <Link href="/request-access" className="text-slate-300 hover:underline">
+              request pilot access
+            </Link>{" "}
+            (free).
+          </p>
         </div>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-10">
-        <div className="mx-auto max-w-3xl space-y-3 text-center">
-          <h2 className="text-lg font-medium text-white">Look up a part</h2>
-          <PartSearch />
-          <p className="text-sm text-slate-500">Nothing to hand? <Link href="/sample-part" className="text-emerald-400 hover:underline">Open a sample passport</Link></p>
-        </div>
+      <section className="mx-auto max-w-2xl px-4 py-12">
+        <h2 className="text-base font-semibold text-white">What the check looks for</h2>
+        <ul className="mt-4 divide-y divide-slate-800 rounded border border-slate-800">
+          {catches.map((item) => (
+            <li key={item.title} className="px-4 py-3">
+              <p className="text-sm font-medium text-white">{item.title}</p>
+              <p className="mt-1 text-sm text-slate-400">{item.detail}</p>
+            </li>
+          ))}
+        </ul>
       </section>
 
-      <section className="mx-auto max-w-6xl px-4 py-14">
-        <h2 className="text-2xl font-semibold tracking-tight text-white">What it catches</h2>
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {catches.map(([t, d]) => <Card key={t}><h3 className="font-medium text-white">{t}</h3><p className="mt-1.5 text-sm leading-relaxed text-slate-400">{d}</p></Card>)}
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-4 py-10">
-        <div className="grid items-center gap-8 rounded-2xl border border-slate-800 bg-slate-900/50 p-8 lg:grid-cols-2">
-          <div className="space-y-3">
-            <h2 className="text-2xl font-semibold tracking-tight text-white">A history nobody can quietly edit</h2>
-            <p className="text-slate-400">Every inspection, repair, sale and installation is signed by the organization that did it and linked to the event before. Change one record and every check after it fails, and the failure points to the exact event.</p>
-          </div>
-          <div className="flex flex-wrap gap-3 lg:justify-end">
-            <Link href="/sample-part" className={btnPrimary}>Open a signed history</Link>
-            <Link href="/sample-part?tamper=1" className={btnSecondary}>See what an edit looks like</Link>
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-6xl px-4 py-14">
-        <h2 className="text-2xl font-semibold tracking-tight text-white">How shops use it</h2>
-        <div className="mt-6 grid gap-6 md:grid-cols-3">
-          {roles.map(([t, d]) => <div key={t} className="border-t border-slate-700 pt-4"><h3 className="font-medium text-white">{t}</h3><p className="mt-2 text-sm leading-relaxed text-slate-400">{d}</p></div>)}
-        </div>
-      </section>
-
-      <section className="border-t border-slate-800">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-12">
+      <section className="border-y border-slate-900 bg-slate-900/30">
+        <div className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-10 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-white">Start with your own certificates</h2>
-            <p className="mt-1 text-slate-400">The Pilot plan is free. Upgrade when your volume grows.</p>
+            <h2 className="text-base font-semibold text-white">Signed event history</h2>
+            <p className="mt-2 max-w-md text-sm text-slate-400">
+              Inspections, repairs, and transfers are signed by the organization that
+              recorded them and linked in sequence. Change one event and later checks
+              fail at that point.
+            </p>
           </div>
-          <div className="flex gap-3">
-            <Link href="/request-access" className={btnPrimary}>Request access</Link>
-            <Link href="/pricing" className={btnSecondary}>See pricing</Link>
+          <div className="flex flex-wrap gap-2 shrink-0">
+            <Link href="/sample-part" className={btnPrimary}>
+              Sample history
+            </Link>
+            <Link href="/sample-part?tamper=1" className={btnSecondary}>
+              Broken chain
+            </Link>
           </div>
         </div>
       </section>
-      <p className="px-4 pb-10 text-center text-xs text-slate-600">PartPassport checks whether records are consistent. It is not an airworthiness determination.</p>
+
+      <section className="mx-auto max-w-2xl px-4 py-12">
+        <h2 className="text-base font-semibold text-white">Who uses it</h2>
+        <div className="mt-6 space-y-5 text-sm leading-relaxed text-slate-400">
+          <div>
+            <p className="font-medium text-slate-200">Receiving inspection</p>
+            <p className="mt-1">
+              Run the PDF when the part arrives. See missing blocks before the unit is
+              put away.
+            </p>
+          </div>
+          <div>
+            <p className="font-medium text-slate-200">Traders and distributors</p>
+            <p className="mt-1">
+              Put a public verify link on the quote so the buyer can open the history
+              without another email thread.
+            </p>
+          </div>
+          <div>
+            <p className="font-medium text-slate-200">Repair station quality</p>
+            <p className="mt-1">
+              Events are tied to your organization. When someone asks who signed what,
+              the chain is the record.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="border-t border-slate-900">
+        <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-3 px-4 py-10">
+          <p className="text-sm text-slate-400">
+            Pilot plan is free. Paid plans when volume grows.
+          </p>
+          <div className="flex gap-2">
+            <Link href="/request-access" className={btnPrimary}>
+              Request access
+            </Link>
+            <Link href="/pricing" className={btnSecondary}>
+              Pricing
+            </Link>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

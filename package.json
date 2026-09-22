@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "postinstall": "prisma generate",
     "org:create": "tsx --env-file=.env scripts/create-org.ts",
-    "flags:import": "tsx --env-file=.env scripts/importSafetyFlags.ts",
+    "flags:import": "tsx --env-file=.env scripts/import-safety-flags.ts",
     "test:e2e": "tsx --env-file=.env scripts/e2e.ts",
     "seed:demo": "tsx --env-file=.env scripts/seed-demo.ts",
     "doctor": "tsx --env-file=.env scripts/doctor.ts",
@@ -23,7 +23,8 @@
     "check": "npm run lint && npm run typecheck && npm run test:run",
     "org:plan": "tsx --env-file=.env scripts/set-plan.ts",
     "org:list": "tsx --env-file=.env scripts/list-orgs.ts",
-    "leads": "tsx --env-file=.env scripts/leads.ts"
+    "leads": "tsx --env-file=.env scripts/leads.ts",
+    "flags:import:sdr": "tsx --env-file=.env scripts/import-sdrs.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.127.0",

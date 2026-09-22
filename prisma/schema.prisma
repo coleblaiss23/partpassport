@@ -20,25 +20,25 @@ enum Plan {
 }
 
 model Organization {
-  id                 String          @id @default(cuid())
+  id                 String             @id @default(cuid())
   name               String
-  clerkOrgId         String?         @unique
+  clerkOrgId         String?            @unique
   faaCertNumber      String? // self-reported until verified
   easaApprovalNumber String?
-  verification       OrgVerification @default(UNVERIFIED)
+  verification       OrgVerification    @default(UNVERIFIED)
   verifiedAt         DateTime?
   publicKey          String
   encPrivateKey      String? // AES-GCM envelope. Null for bring-your-own-key orgs
-  keyVersion         Int             @default(1)
-  active             Boolean         @default(true)
-  plan               Plan            @default(PILOT)
-  stripeCustomerId   String?         @unique
-  stripeSubId        String?         @unique
+  keyVersion         Int                @default(1)
+  active             Boolean            @default(true)
+  plan               Plan               @default(PILOT)
+  stripeCustomerId   String?            @unique
+  stripeSubId        String?            @unique
   subStatus          String?
   currentPeriodEnd   DateTime?
-  createdAt          DateTime        @default(now())
+  createdAt          DateTime           @default(now())
   apiKeys            ApiKey[]
-  parts              Part[]          @relation("CurrentCustodian")
+  parts              Part[]             @relation("CurrentCustodian")
   events             PartEvent[]
   checks             CertificateCheck[]
   auditLogs          AuditLog[]
@@ -77,15 +77,15 @@ model StripeEvent {
 }
 
 model Part {
-  id           String        @id @default(cuid())
+  id           String       @id @default(cuid())
   partNumber   String
   serialNumber String
   description  String?
-  scrapped     Boolean       @default(false)
+  scrapped     Boolean      @default(false)
   currentOrgId String?
   currentOrg   Organization? @relation("CurrentCustodian", fields: [currentOrgId], references: [id])
   events       PartEvent[]
-  createdAt    DateTime      @default(now())
+  createdAt    DateTime     @default(now())
 
   @@unique([partNumber, serialNumber])
   @@index([currentOrgId])

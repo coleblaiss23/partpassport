@@ -66,4 +66,8 @@ AGENTS.md
 CLAUDE.md
 aircraft_db/
 *.accdb
-*.csv
+*.mdb
+*_SDR.csv
+pma_database.csv
+repair_stations.*
+/data/raw/
