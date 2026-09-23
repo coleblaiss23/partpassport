@@ -1,4 +1,4 @@
-import { auth } from "@/lib/auth";
+import { getSessionOrg } from "@/lib/sessionOrg";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { AvlManager } from "./AvlManager";
@@ -7,13 +7,13 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Approved Vendor List | PartPassport" };
 
 export default async function AvlSettingsPage() {
-  const session = await auth();
-  if (!session?.user?.organizationId) {
+  const org = await getSessionOrg();
+  if (!org) {
     redirect("/connect");
   }
 
   const vendors = await prisma.approvedVendor.findMany({
-    where: { organizationId: session.user.organizationId },
+    where: { organizationId: org.id },
     orderBy: [{ isActive: "desc" }, { supplierName: "asc" }],
   });
 

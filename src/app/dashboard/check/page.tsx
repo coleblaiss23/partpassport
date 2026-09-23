@@ -73,7 +73,7 @@ export default function ScannerPage() {
   }, [items]);
 
   useEffect(() => {
-    fet("/api/ai-status")
+    fetch("/api/ai-status")
       .then((r) => r.json())
       .then(setAi)
       .catch(() => {});
