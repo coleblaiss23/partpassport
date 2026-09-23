@@ -42,6 +42,7 @@ model Organization {
   events             PartEvent[]
   checks             CertificateCheck[]
   auditLogs          AuditLog[]
+  approvedVendors ApprovedVendor[]
 }
 
 model ApiKey {
@@ -168,4 +169,21 @@ model RepairStation {
   status         String   @default("ACTIVE") // ACTIVE, REVOKED, EXPIRED
   airworthiness  Boolean  @default(true)
   createdAt      DateTime @default(now())
+}
+
+model ApprovedVendor {
+  id                String       @id @default(cuid())
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  supplierName      String
+  certificateNumber String
+  isActive          Boolean      @default(true)
+  notes             String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@unique([organizationId, supplierName, certificateNumber])
+  @@index([organizationId, isActive])
+  @@index([organizationId, supplierName])
+  @@map("approved_vendors")
 }
