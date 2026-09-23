@@ -122,7 +122,7 @@ export function AvlManager({ initialVendors }: { initialVendors: Vendor[] }) {
             {success && <p className="text-sm text-emerald-400">{success}</p>}
           </div>
         </form>
-      </>
+      </Card>
 
       <section className="space-y-3">
         <h2 className="text-lg font-medium text-white">
@@ -133,8 +133,7 @@ export function AvlManager({ initialVendors }: { initialVendors: Vendor[] }) {
             <p className="text-sm text-slate-400">No active vendors yet. Add your first approved supplier above.</p>
           </Card>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-slate-800">
-            <table className="w-full text-sm">
+          <div className="overflow-hidden rounded-xl border border-slate-80            <table className="w-full text-sm">
               <thead className="bg-slate-900 text-left text-xs uppercase tracking-wider text-slate-500">
                 <tr>
                   <th className="px-4 py-3">Supplier</th>
@@ -152,7 +151,7 @@ export function AvlManager({ initialVendors }: { initialVendors: Vendor[] }) {
                     <td className="px-4 py-3 text-right">
                       <button
                         type="button"
-                        onClick={() => handleDeactivate(v.id)}
+                      onClick={() => handleDeactivate(v.id)}
                         disabled={isPending}
                         className="text-xs text-rose-400 hover:text-rose-300"
                       >
@@ -169,7 +168,7 @@ export function AvlManager({ initialVendors }: { initialVendors: Vendor[] }) {
 
       {inactive.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-lg font-medium text-slate-0">
+          <h2 className="text-lg font-medium text-slate-400">
             Inactive <span className="text-slate-600">({inactive.length})</span>
           </h2>
           <div className="overflow-hidden rounded-xl border border-slate-800/60">

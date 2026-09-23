@@ -70,10 +70,10 @@ export default function ScannerPage() {
 
   useEffect(() => {
     ref.current = items;
-  }, tems]);
+  }, [items]);
 
   useEffect(() => {
-    fetch("/api/ai-status")
+    fet("/api/ai-status")
       .then((r) => r.json())
       .then(setAi)
       .catch(() => {});
@@ -242,7 +242,7 @@ export default function ScannerPage() {
           {cur?.status === "running" && (
             <Card>
               <p className="text-sm text-slate-300">Analyzing {cur.file.name}…</p>
-            </Card>
+          </Card>
           )}
 
           {cur?.status === "error" && (
@@ -259,7 +259,7 @@ export default function ScannerPage() {
                 sn: String(r.extracted.serial ?? ""),
                 desc: String(r.extracted.description ?? ""),
                 cert: r.certificateHash,
-            })}`;
+              })}`;
 
               return (
                 <>
