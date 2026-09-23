@@ -133,7 +133,8 @@ export function AvlManager({ initialVendors }: { initialVendors: Vendor[] }) {
             <p className="text-sm text-slate-400">No active vendors yet. Add your first approved supplier above.</p>
           </Card>
         ) : (
-          <div className="overflow-hidden rounded-xl border border-slate-80            <table className="w-full text-sm">
+          <div className="overflow-hidden rounded-xl borderder-slate-800">
+            <table className="w-full text-sm">
               <thead className="bg-slate-900 text-left text-xs uppercase tracking-wider text-slate-500">
                 <tr>
                   <th className="px-4 py-3">Supplier</th>
@@ -150,8 +151,7 @@ export function AvlManager({ initialVendors }: { initialVendors: Vendor[] }) {
                     <td className="px-4 py-3 text-slate-400">{v.notes || "—"}</td>
                     <td className="px-4 py-3 text-right">
                       <button
-                        type="button"
-                      onClick={() => handleDeactivate(v.id)}
+                        type="button"                       onClick={() => handleDeactivate(v.id)}
                         disabled={isPending}
                         className="text-xs text-rose-400 hover:text-rose-300"
                       >

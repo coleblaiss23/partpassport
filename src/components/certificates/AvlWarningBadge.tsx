@@ -30,8 +30,8 @@ export function AvlWarningBadge({
       >
         <CheckCircle2 className={cn("shrink-0", size === "sm" ? "h-3.5 w-3.5" : "h-4 w-4")} />
         <span className="font-medium">
-          On AVL{matchedSupplierName ? ` • ${matchedSupplierName}` : ""}
-        </spa
+          On AVL{matchedSupplierName ? ` • ${matchedSupplierName : ""}
+        </span>
       </div>
     );
   }
