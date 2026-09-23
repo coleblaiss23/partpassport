@@ -16,11 +16,10 @@ export function AvlWarningBadge({
   size = "md",
 }: AvlWarningBadgeProps) {
   const sizeCls = size === "sm" ? "text-xs px-2 py-0.5" : "text-sm px-2.5 py-1";
+  
   if (isOnAvl) {
     return (
-      <div
-        className={`inline-flex items-center gap-1.5 rounded-md border border-emerald-500/35 bg-emerald-500/10 text-emerald-400 ${sizeCls} ${className}`}
-      >
+      <div className={"inline-flex items-center gap-1.5 rounded-md border border-emerald-500/35 bg-emerald-500/10 text-emerald-400 " + sizeCls + " " + className}>
         <span aria-hidden>✓</span>
         <span className="font-medium">
           On AVL{matchedSupplierName ? " • " + matchedSupplierName : ""}
@@ -28,9 +27,10 @@ export function AvlWarningBadge({
       </div>
     );
   }
+
   return (
-    <div
-      className={`inline-flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 text-amber-400 ${sizeCls} ${classN`}
+    <div 
+      className={"inline-flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 text-amber-400 " + sizeCls + " " + clase}
       title={warning ?? "Vendor not found on current Approved Vendor List"}
     >
       <span aria-hidden>!</span>
