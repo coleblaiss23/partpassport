@@ -42,7 +42,9 @@ model Organization {
   events             PartEvent[]
   checks             CertificateCheck[]
   auditLogs          AuditLog[]
-  approvedVendors ApprovedVendor[]
+  approvedVendors  ApprovedVendor[]
+  complianceItems  ComplianceItem[]
+  auditShares      AuditShare[]
 }
 
 model ApiKey {
@@ -78,18 +80,27 @@ model StripeEvent {
 }
 
 model Part {
-  id           String       @id @default(cuid())
-  partNumber   String
-  serialNumber String
-  description  String?
-  scrapped     Boolean      @default(false)
-  currentOrgId String?
-  currentOrg   Organization? @relation("CurrentCustodian", fields: [currentOrgId], references: [id])
-  events       PartEvent[]
-  createdAt    DateTime     @default(now())
+  id                   String         @id @default(cuid())
+  partNumber           String
+  serialNumber         String
+  description          String?
+  scrapped             Boolean        @default(false)
+  isLifeLimited        Boolean        @default(false)
+  totalTimeHours       Float?
+  totalCycles          Int?
+  lifeLimitHours       Float?
+  lifeLimitCycles      Int?
+  custodyStatus        String         @default("QUARANTINE") // QUARANTINE | SERVICEABLE | UNSERVICEABLE
+  birthCertificateHash String? // digital birth certificate / manufacture release hash
+  currentOrgId         String?
+  currentOrg           Organization?  @relation("CurrentCustodian", fields: [currentOrgId], references: [id])
+  events               PartEvent[]
+  createdAt            DateTime       @default(now())
 
   @@unique([partNumber, serialNumber])
   @@index([currentOrgId])
+  @@index([currentOrgId, custodyStatus])
+  @@index([currentOrgId, isLifeLimited])
 }
 
 model PartEvent {
@@ -177,6 +188,8 @@ model ApprovedVendor {
   organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   supplierName      String
   certificateNumber String
+  expiresAt         DateTime?
+  ratings           String? // e.g. "Limited Airframe, Instruments" or CSV ratings list
   isActive          Boolean      @default(true)
   notes             String?
   createdAt         DateTime     @default(now())
@@ -185,5 +198,63 @@ model ApprovedVendor {
   @@unique([organizationId, supplierName, certificateNumber])
   @@index([organizationId, isActive])
   @@index([organizationId, supplierName])
+  @@index([organizationId, expiresAt])
   @@map("approved_vendors")
+}
+
+/// Shop tool calibrations, vendor cert expirations, inspection authorizations.
+model ComplianceItem {
+  id             String             @id @default(cuid())
+  organizationId String
+  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  category       String // TOOL_CALIBRATION | VENDOR_CERT | INSPECTION_AUTH
+  name           String
+  reference      String?
+  expiresAt      DateTime
+  notes          String?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@index([organizationId, expiresAt])
+  @@index([organizationId, category])
+}
+
+/// Temporary encrypted share links for external FAA auditors / airline customers.
+model AuditShare {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tokenHash      String       @unique
+  label          String?
+  /// CERT_CHECK | PART_PASSPORT
+  packageType    String
+  resourceId     String
+  /// AES-GCM ciphertext of the package payload (base64)
+  encPayload     String
+  expiresAt      DateTime
+  revokedAt      DateTime?
+  createdAt      DateTime     @default(now())
+  lastAccessedAt DateTime?
+
+  @@index([organizationId, createdAt])
+  @@index([expiresAt])
+}
+
+/// Admin-managed training videos for MRO receiving / quality staff.
+model TutorialVideo {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  /// YouTube/Vimeo watch or embed URL, or direct MP4
+  embedUrl    String
+  /// AVL | INTAKE | AUDIT_SHARE | GENERAL
+  category    String   @default("GENERAL")
+  sortOrder   Int      @default(0)
+  published   Boolean  @default(true)
+  duration    String? // e.g. "4:20"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([published, sortOrder])
+  @@index([category])
 }

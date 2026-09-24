@@ -1,9 +1,9 @@
 import { getSessionOrg } from "@/lib/sessionOrg";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { Card, btnPrimary, btnSecondary } from "@/components/ui";
+import { Card, PageHeader } from "@/components/ui";
 import BillingButton from "@/components/BillingButton";
-import { PlanSwitcher } from "@/components/PlanSwitcher";
+import { PricingMatrix } from "@/components/PricingMatrix";
 import {
   billingDevMockEnabled,
   isDevStripeCustomer,
@@ -32,73 +32,52 @@ export default async function BillingPage({
 
   const plan = effectivePlan(organization);
   const limits = PLAN_LIMITS[plan];
-  const mock = billingDevMockEnabled() || isDevStripeCustomer(organization.stripeCustomerId);
+  const mock =
+    billingDevMockEnabled() || isDevStripeCustomer(organization.stripeCustomerId);
   const stripeReady = stripeCheckoutConfigured() && stripePortalConfigured();
 
   return (
-    <main className="mx-auto max-w-3xl space-y-8 px-4 py-10">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-semibold text-white">Billing</h1>
-        <p className="text-sm text-slate-400">
-          Manage your plan for <span className="text-slate-200">{organization.name}</span>.
-        </p>
-      </div>
+    <main className="mx-auto max-w-5xl space-y-8 px-4 py-10">
+      <PageHeader
+        title="Billing"
+        subtitle={`Plan for ${organization.name} · ${limits.checks.toLocaleString()} checks / month`}
+        actions={
+          plan !== "PILOT" && !mock && stripeReady ? <BillingButton /> : undefined
+        }
+      />
 
       {params.updated && (
-        <p className="rounded border border-emerald-800 bg-emerald-950/40 px-3 py-2 text-sm text-emerald-300">
+        <p className="rounded-[4px] border border-[#1F6B47] bg-[#14281F] px-3 py-2 text-sm text-white">
           Plan set to {params.updated}.
         </p>
       )}
 
-      <Card className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h2 className="text-base font-semibold text-white">Current plan: {limits.name}</h2>
-          <span className="text-xs text-slate-500">
-            {limits.checks.toLocaleString()} checks / month
-          </span>
-        </div>
-
-        {mock ? (
-          <PlanSwitcher currentPlan={organization.plan} />
-        ) : stripeReady ? (
-          <div className="space-y-3">
-            {plan === "PILOT" ? (
-              <Link href="/checkout?plan=PRO" className={btnPrimary}>
-                Upgrade to MRO Professional
-              </Link>
-            ) : (
-              <BillingButton />
-            )}
-            <Link href="/pricing" className={`${btnSecondary} inline-block`}>
-              Compare plans
-            </Link>
-          </div>
-        ) : (
-          <p className="text-sm text-slate-400">
-            Stripe is not configured. Set <code className="font-mono text-slate-300">STRIPE_SECRET_KEY</code> and{" "}
-            <code className="font-mono text-slate-300">STRIPE_PRICE_PRO</code>, or enable{" "}
-            <code className="font-mono text-slate-300">BILLING_DEV_MOCK=1</code>.
-          </p>
-        )}
-      </Card>
+      <section className="space-y-3">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-[#7C8495]">
+          Choose a plan
+        </h2>
+        <PricingMatrix
+          currentPlan={organization.plan}
+          orgId={organization.name ? org.id : null}
+          mock={mock}
+          stripeReady={stripeReady}
+          mode="billing"
+        />
+      </section>
 
       <Card className="space-y-2">
         <h2 className="text-sm font-semibold text-white">Shortcuts</h2>
         <div className="flex flex-wrap gap-2 text-sm">
-          <Link href="/dashboard" className="text-emerald-400 hover:underline">
+          <Link href="/dashboard" className="text-[#1F6B47] hover:underline">
             Dashboard
           </Link>
-          <span className="text-slate-600">·</span>
-          <Link href="/dashboard/records" className="text-emerald-400 hover:underline">
+          <span className="text-[#7C8495]">·</span>
+          <Link href="/dashboard/records" className="text-[#1F6B47] hover:underline">
             Manage records
           </Link>
-          <span className="text-slate-600">·</span>
-          <Link href="/checkout" className="text-emerald-400 hover:underline">
-            Checkout
-          </Link>
-          <span className="text-slate-600">·</span>
-          <Link href="/pricing" className="text-emerald-400 hover:underline">
-            Pricing
+          <span className="text-[#7C8495]">·</span>
+          <Link href="/pricing" className="text-[#1F6B47] hover:underline">
+            Public pricing
           </Link>
         </div>
       </Card>

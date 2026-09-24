@@ -3,6 +3,23 @@
 @theme inline {
   --font-sans: var(--font-geist-sans, ui-sans-serif, system-ui, sans-serif);
   --font-mono: var(--font-geist-mono, ui-monospace, monospace);
+
+  /* Matte industrial palette (opaque only) */
+  --color-pp-bg: #0b0f14;
+  --color-pp-surface: #12151c;
+  --color-pp-surface-2: #161b24;
+  --color-pp-border: #1f2430;
+  --color-pp-border-strong: #222a3b;
+  --color-pp-text: #ffffff;
+  --color-pp-secondary: #b0b6c3;
+  --color-pp-muted: #7c8495;
+  --color-pp-pass: #1f6b47;
+  --color-pp-pass-fg: #d8f3e7;
+  --color-pp-warn: #b45309;
+  --color-pp-warn-fg: #ffedd5;
+  --color-pp-danger: #9f1239;
+  --color-pp-danger-fg: #ffe4e6;
+  --radius-pp: 4px;
 }
 
 html {
@@ -10,6 +27,32 @@ html {
 }
 
 body {
-  background-color: #020617;
-  color: #e2e8f0;
+  background-color: #0b0f14;
+  color: #ffffff;
+}
+
+/* High-density tracking / identity blocks */
+.pp-track {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/*
+ * Hard kill glass / glow / soft elevation site-wide.
+ * Prefer solid borders + opaque fills in components.
+ */
+*,
+*::before,
+*::after {
+  --tw-shadow: 0 0 #0000 !important;
+  --tw-shadow-colored: 0 0 #0000 !important;
+  --tw-ring-shadow: 0 0 #0000 !important;
+  --tw-ring-offset-shadow: 0 0 #0000 !important;
+  --tw-drop-shadow: 0 0 #0000 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }

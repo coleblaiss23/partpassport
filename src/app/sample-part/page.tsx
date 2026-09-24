@@ -7,34 +7,34 @@ export const metadata = { title: "Sample part passport" };
 export const dynamic = "force-dynamic";
 
 export default async function SamplePart({
-  searchParams,
+ searchParams,
 }: {
-  searchParams: Promise<{ tamper?: string }>;
+ searchParams: Promise<{ tamper?: string }>;
 }) {
-  const tamper = (await searchParams).tamper === "1";
-  const r = demoResult(tamper);
-  return (
-    <main className="mx-auto max-w-3xl px-4 py-10">
-      <PassportView
-        r={r}
-        banner={
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded border border-slate-800 bg-slate-900/50 p-3 text-sm text-slate-400">
-            <span>
-              Sample passport. Organizations are fictional; signatures are checked when
-              this page loads.
-            </span>
-            {tamper ? (
-              <Link href="/sample-part" className={btnSecondary}>
-                Untouched record
-              </Link>
-            ) : (
-              <Link href="/sample-part?tamper=1" className={btnSecondary}>
-                Show a broken chain
-              </Link>
-            )}
-          </div>
-        }
-      />
-    </main>
-  );
+ const tamper = (await searchParams).tamper === "1";
+ const r = demoResult(tamper);
+ return (
+ <main className="mx-auto max-w-3xl px-4 py-10">
+ <PassportView
+ r={r}
+ banner={
+ <div className="flex flex-wrap items-center justify-between gap-3 rounded border border-[#1F2430] bg-[#12151C] p-3 text-sm text-[#B0B6C3]">
+ <span>
+ Sample passport. Organizations are fictional; signatures are checked when
+ this page loads.
+ </span>
+ {tamper ? (
+ <Link href="/sample-part" className={btnSecondary}>
+ Untouched record
+ </Link>
+ ) : (
+ <Link href="/sample-part?tamper=1" className={btnSecondary}>
+ Show a broken chain
+ </Link>
+ )}
+ </div>
+ }
+ />
+ </main>
+ );
 }
