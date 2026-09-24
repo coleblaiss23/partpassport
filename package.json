@@ -27,12 +27,16 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.127.0",
+    "@napi-rs/canvas": "^1.0.9",
     "@prisma/client": "^5.0.0",
     "geist": "^1.7.2",
     "next": "^15.5.25",
     "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^6.3.289",
     "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "react-dom": "^19.3.0",
+    "tesseract.js": "^7.0.0",
+    "unpdf": "^1.8.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",

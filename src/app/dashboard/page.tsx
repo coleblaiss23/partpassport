@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getSessionOrg } from "@/lib/sessionOrg";
 import { getUsage } from "@/lib/usage";
 import { PLAN_LIMITS, effectivePlan } from "@/lib/planLimits";
-import { Badge, Card, Hash, PageHeader, Stat, btnPrimary, btnSecondary } from "@/components/ui";
+import { Badge, Card, Hash, PageHeader, Stat, btnPrimary } from "@/components/ui";
 import BillingButton from "@/components/BillingButton";
 
 export const dynamic = "force-dynamic";
@@ -49,17 +49,7 @@ export default async function DashboardPage() {
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-4 py-8">
-      <PageHeader
-        title={org.name}
-        subtitle="Organization overview"
-        actions={<>
-          <Link href="/dashboard/check" className={btnPrimary}>Scan certificates</Link>
-          <Link href="/dashboard/parts/new" className={btnSecondary}>Register part</Link>
-          <Link href="/dashboard/events/new" className={btnSecondary}>Issue transfer or event</Link>
-          <Link href="/dashboard/import" className={btnSecondary}>Bulk import</Link>
-          <Link href="/dashboard/settings/api-keys" className={btnSecondary}>API keys</Link>
-        </>}
-      />
+      <PageHeader title={org.name} subtitle="Organization overview" />
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <Stat label="Parts in your custody" value={held} />
@@ -116,7 +106,7 @@ export default async function DashboardPage() {
             <Meter label="Certificate checks" used={usage.checks} limit={limits.checks} />
             <Meter label="Part registrations" used={usage.registrations} limit={limits.registrations} />
             <p className="text-xs text-slate-500">Resets on the 1st of each month (UTC).</p>
-            {plan === "PILOT" ? <Link href="/pricing" className={`${btnPrimary} w-full`}>Upgrade plan</Link> : org.stripeCustomerId ? <BillingButton /> : <p className="text-xs text-slate-400">Billing questions? Contact us and we&apos;ll help.</p>}
+            {plan === "PILOT" ? <Link href="/checkout?plan=PRO" className={`${btnPrimary} w-full`}>Upgrade plan</Link> : <BillingButton />}
           </Card>
         </div>
       </div>

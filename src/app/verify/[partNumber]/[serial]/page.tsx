@@ -3,6 +3,7 @@ import { verifyPart } from "@/lib/verifyChain";
 import PassportView from "@/components/PassportView";
 import { Card, btnSecondary } from "@/components/ui";
 import { PrismaClient } from "@prisma/client";
+import { normPN } from "@/lib/normalize";
 
 const prisma = new PrismaClient();
 
@@ -15,8 +16,8 @@ export default async function VerifyPage({ params }: { params: Promise<{ partNum
   const pn = decode(p.partNumber), sn = decode(p.serial);
   const r = await verifyPart(pn, sn);
 
-  // Normalize the part number to match database safety flag records
-  const normalizedPartNumber = pn.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+  // Normalize the part number to match database safety flag records (OCR confusables folded)
+  const normalizedPartNumber = normPN(pn);
 
   // Query live FAA UPN safety flags from your database
   const safetyFlags = await prisma.safetyFlag.findMany({

@@ -46,5 +46,7 @@ npm run loadtest -- --c 20 --s 15
 - Organization creation requires `ADMIN_TOKEN`.
 - Browser sessions use a signed, HTTP-only, same-site cookie; API keys are stored hashed and can be revoked.
 - Plan limits and rate limits are enforced server-side. Set the Upstash variables for limits shared across instances.
-- Never enable `AI_MODE=mock` or `DISABLE_RATE_LIMIT` in production. `npm run doctor` flags both.
+- Prefer `ANTHROPIC_API_KEY` for difficult scanned certificates. With `AI_MODE=local`, extraction uses PDF text → known sample map → Tesseract OCR (`unpdf` + `@napi-rs/canvas`). Legacy `AI_MODE=mock` is treated as local.
+- Stripe Checkout needs `STRIPE_SECRET_KEY` and `STRIPE_PRICE_PRO`. With `BILLING_DEV_MOCK=1` (or unset Stripe in development), use `/billing` and `/checkout` to change plans in the browser.
+- Manage and delete certificate checks / parts at `/dashboard/records`. Delete the organization from `/billing`.
 - The terms and privacy pages are drafts. Have counsel review them before charging customers.

@@ -29,7 +29,7 @@ export async function POST(request: Request) {
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const sha256 = createHash("sha256").update(buffer).digest("hex");
-    const { data, mode } = await extractCert(buffer.toString("base64"), file.name);
+    const { data, mode } = await extractCert(buffer.toString("base64"));
     const redFlags = [...new Set([...localFlags(data), ...(data.redFlags ?? [])])];
 
     const check = await prisma.certificateCheck.create({

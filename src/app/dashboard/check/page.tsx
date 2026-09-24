@@ -27,14 +27,18 @@ type Item = {
 };
 
 const FIELDS: [string, string][] = [
-  ["partNumber", "Part number"],
-  ["serial", "Serial"],
-  ["description", "Description"],
-  ["status", "Status / work"],
+  ["trackingNumber", "Tracking no. (Block 3)"],
+  ["organization", "Organization (Block 4)"],
+  ["description", "Description (Block 7)"],
+  ["partNumber", "Part number (Block 8)"],
+  ["eligibility", "Eligibility (Block 9)"],
+  ["quantity", "Quantity (Block 10)"],
+  ["serial", "Serial / batch (Block 11)"],
+  ["status", "Status / work (Block 12)"],
+  ["remarks", "Remarks (Block 13)"],
   ["approvalNumber", "Approval no."],
   ["date", "Date"],
   ["hasSignature", "Signature present"],
-  ["remarks", "Remarks"],
 ];
 
 const show = (v: unknown) =>
@@ -144,9 +148,7 @@ export default function ScannerPage() {
       className={`rounded-md border p-3 text-sm ${
         ai.mode === "anthropic"
           ? "border-emerald-800 bg-emerald-950/40 text-emerald-300"
-          : ai.mode === "mock"
-            ? "border-amber-800 bg-amber-950/40 text-amber-300"
-            : "border-rose-800 bg-rose-950/40 text-rose-300"
+          : "border-rose-800 bg-rose-950/40 text-rose-300"
       }`}
     >
       {ai.message}
@@ -263,12 +265,6 @@ export default function ScannerPage() {
 
               return (
                 <>
-                  {r.mode === "mock" && (
-                    <p className="text-xs text-amber-400">
-                      Mock result: canned sample data, not a real analysis.
-                    </p>
-                  )}
-
                   {cur.avl && (
                     <AvlWarningBadge
                       isOnAvl={cur.avl.isOnAvl}

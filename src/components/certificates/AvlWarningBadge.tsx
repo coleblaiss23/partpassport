@@ -30,7 +30,7 @@ export function AvlWarningBadge({
 
   return (
     <div 
-      className={"inline-flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 text-amber-400 " + sizeCls + " " + clase}
+      className={"inline-flex items-center gap-1.5 rounded-md border border-amber-500/40 bg-amber-500/10 text-amber-400 " + sizeCls + " " + className}
       title={warning ?? "Vendor not found on current Approved Vendor List"}
     >
       <span aria-hidden>!</span>

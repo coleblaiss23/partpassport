@@ -15,7 +15,11 @@ const APP = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/dashboard/check", label: "Certificate check" },
   { href: "/dashboard/parts/new", label: "Register part" },
+  { href: "/dashboard/events/new", label: "Events" },
   { href: "/dashboard/import", label: "Import" },
+  { href: "/dashboard/records", label: "Records" },
+  { href: "/dashboard/settings/api-keys", label: "API keys" },
+  { href: "/billing", label: "Billing" },
 ];
 
 export default function Navbar() {

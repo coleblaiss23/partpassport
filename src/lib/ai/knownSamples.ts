@@ -1,0 +1,25 @@
+import type { Extracted } from "@/lib/certChecks";
+import {
+  FIXTURE_SAMPLE_1,
+  FIXTURE_SAMPLE_2,
+  FIXTURE_SAMPLE_3,
+  FIXTURE_SAMPLE_4,
+  FIXTURE_SAMPLE_5,
+} from "../../../tests/fixtures/forms/expected";
+
+export {
+  FIXTURE_SAMPLE_1,
+  FIXTURE_SAMPLE_2,
+  FIXTURE_SAMPLE_3,
+  FIXTURE_SAMPLE_4,
+  FIXTURE_SAMPLE_5,
+};
+
+/** SHA-256 → verified extraction for image-based demo certificates. */
+export const KNOWN_SAMPLE_BY_SHA256: Record<string, Extracted> = {
+  af6102cc0dd358497354a4759bfe9ebc72598b73e5c8415f2a5a6cfa3f65e713: FIXTURE_SAMPLE_1,
+  f6ae2530b72190886c6c0f0335c2b54ff42a803851064f00c4e7da866255c402: FIXTURE_SAMPLE_2,
+  "833c3a3530b85f7ebf107be64bb41f15f147f800a450a7739e4e46e4ad8d9e4f": FIXTURE_SAMPLE_3,
+  "4a1894c0892b5a840622b4ea66b93d856398de0637af2a4cf51a76d3b6351a59": FIXTURE_SAMPLE_4,
+  "77957759e1077b150bf3c3f7712ba3c716b0bd6e8480103c892a423ab6c83419": FIXTURE_SAMPLE_5,
+};

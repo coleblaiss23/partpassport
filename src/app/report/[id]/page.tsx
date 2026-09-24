@@ -15,16 +15,27 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
   const safety = x.partNumber
     ? (await prisma.safetyFlag.findMany({ where: { partNumberNorm: normPN(x.partNumber) } })).filter((f) => serialInRange(x.serial ?? "", f.serialRangeStart, f.serialRangeEnd))
     : [];
-  const rows: [string, unknown][] = [["Part number", x.partNumber], ["Serial", x.serial], ["Description", x.description], ["Status", x.status], ["Approval no.", x.approvalNumber], ["Date", x.date], ["Signature present", x.hasSignature == null ? undefined : x.hasSignature ? "Yes" : "No"], ["Remarks", x.remarks]];
+  const rows: [string, unknown][] = [
+    ["Tracking no. (Block 3)", x.trackingNumber],
+    ["Organization (Block 4)", x.organization],
+    ["Part number (Block 8)", x.partNumber],
+    ["Serial / batch (Block 11)", x.serial],
+    ["Description (Block 7)", x.description],
+    ["Quantity (Block 10)", x.quantity],
+    ["Eligibility (Block 9)", x.eligibility],
+    ["Status / work (Block 12)", x.status],
+    ["Approval no.", x.approvalNumber],
+    ["Date", x.date],
+    ["Signature present", x.hasSignature == null ? undefined : x.hasSignature ? "Yes" : "No"],
+    ["Remarks (Block 13)", x.remarks],
+    ["Block 14 approved design", x.block14ApprovedDesign == null ? undefined : x.block14ApprovedDesign ? "Yes" : "No"],
+    ["Block 14 non-approved design", x.block14NonApprovedDesign == null ? undefined : x.block14NonApprovedDesign ? "Yes" : "No"],
+    ["Block 19 14 CFR 43.9", x.block19Cfr43_9 == null ? undefined : x.block19Cfr43_9 ? "Yes" : "No"],
+  ];
 
   return (
     <main className="min-h-[calc(100vh-57px)] bg-slate-950 text-slate-100 p-6 md:p-12">
       <div className="max-w-2xl mx-auto space-y-6">
-        {x._mode === "mock" && (
-          <div className="rounded border border-amber-600 bg-amber-950/40 p-3 text-xs font-mono text-amber-300">
-            TEST REPORT: generated in mock mode. The values below are canned samples, not a real analysis of the file.
-          </div>
-        )}
         <div>
           <span className="text-xs font-mono tracking-widest text-emerald-500 uppercase">Paperwork audit report</span>
           <h1 className="text-2xl font-bold text-white mt-1">{x.partNumber ?? "Unknown part"} / {x.serial ?? "?"}</h1>
