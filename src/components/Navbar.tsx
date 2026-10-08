@@ -89,11 +89,13 @@ export default function Navbar() {
   const tools = TOOLS.filter((t) => !t.auth || signedIn);
   const toolsActive = tools.some((l) => linkActive(path, l.href));
 
-  useEffect(() => {
+  const [menuPath, setMenuPath] = useState(path);
+  if (menuPath !== path) {
+    setMenuPath(path);
     setToolsOpen(false);
     setAcctOpen(false);
     setMobileOpen(false);
-  }, [path]);
+  }
 
   useEffect(() => {
     function onDoc(e: MouseEvent) {
