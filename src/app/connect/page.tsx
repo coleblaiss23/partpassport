@@ -26,7 +26,7 @@ export default function ConnectPage() {
  <PageHeader title="Connect your organization" subtitle="Do this once per device. You won't have to paste keys into every form." />
  {v.org && (
  <Card className="flex items-center justify-between gap-3">
- <p className="text-sm text-[#B0B6C3]">Connected as <span className="font-medium text-white">{v.org.name}</span></p>
+ <p className="text-sm text-[#c8c2b8]">Connected as <span className="font-medium text-white">{v.org.name}</span></p>
  <Link href="/dashboard" className={btnSecondary}>Go to dashboard</Link>
  </Card>
  )}
@@ -39,7 +39,7 @@ export default function ConnectPage() {
  <button className={btnPrimary} disabled={busy}>{busy ? "Connecting…" : "Connect organization"}</button>
  </form>
  </Card>
- <p className="text-xs text-[#7C8495]">Testing locally? Run <code className="font-mono">npm run seed:demo</code> and read <code className="font-mono">demo-credentials.json</code> for demo keys.</p>
+ <p className="text-xs text-[#8d877e]">Testing locally? Run <code className="font-mono">npm run seed:demo</code> and read <code className="font-mono">demo-credentials.json</code> for demo keys.</p>
  </main>
  );
 }

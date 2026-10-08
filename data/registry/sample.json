@@ -1,0 +1,21 @@
+[
+  {
+    "tailNumber": "N4867W",
+    "make": "Rockwell International",
+    "model": "114",
+    "year": 1976,
+    "serialNumber": "14197",
+    "engineModel": "Lycoming IO-540-T4A5D",
+    "source": "FAA"
+  },
+  {
+    "tailNumber": "N172SP",
+    "make": "Cessna",
+    "model": "172S",
+    "year": 2000,
+    "serialNumber": "172S8001",
+    "engineModel": "Lycoming IO-360-L2A",
+    "series": "Skyhawk SP",
+    "source": "MANUAL"
+  }
+]

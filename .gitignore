@@ -53,7 +53,8 @@ bulk-sample.json
 bulk-credentials.json
 bulk-sample.json
 
-# local tooling and secrets
+# local document upload storage
+.data/
 .env
 demo-credentials.json
 bulk-credentials.json

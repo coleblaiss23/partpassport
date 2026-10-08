@@ -60,7 +60,7 @@ export function RecordsManager({
  value={clearConfirm}
  onChange={(e) => setClearConfirm(e.target.value)}
  placeholder='Type DELETE CHECKS'
- className="rounded border border-[#222A3B] bg-[#12151C] px-2 py-1 text-xs text-white"
+ className="rounded border border-[#3d3d3d] bg-[#111111] px-2 py-1 text-xs text-white"
  />
  <button
  type="button"
@@ -77,16 +77,16 @@ export function RecordsManager({
  )}
  </div>
  {checks.length === 0 ? (
- <p className="text-sm text-[#B0B6C3]">No certificate checks yet.</p>
+ <p className="text-sm text-[#c8c2b8]">No certificate checks yet.</p>
  ) : (
- <ul className="divide-y divide-[#1F2430] rounded border border-[#1F2430]">
+ <ul className="divide-y divide-[#2c2c2c] rounded border border-[#2c2c2c]">
  {checks.map((c) => (
  <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm">
  <div>
  <Link href={`/report/${c.id}`} className="text-white hover:text-[#1F6B47]">
  {c.fileName}
  </Link>
- <span className="ml-2 text-xs text-[#7C8495]">
+ <span className="ml-2 text-xs text-[#8d877e]">
  {c.createdAt.slice(0, 10)}
  {c.findings ? ` · ${c.findings} findings` : ""}
  </span>
@@ -111,9 +111,9 @@ export function RecordsManager({
  <section className="space-y-3">
  <h2 className="text-base font-semibold text-white">Parts in custody ({parts.length})</h2>
  {parts.length === 0 ? (
- <p className="text-sm text-[#B0B6C3]">No parts in custody.</p>
+ <p className="text-sm text-[#c8c2b8]">No parts in custody.</p>
  ) : (
- <ul className="divide-y divide-[#1F2430] rounded border border-[#1F2430]">
+ <ul className="divide-y divide-[#2c2c2c] rounded border border-[#2c2c2c]">
  {parts.map((p) => (
  <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-sm">
  <div>
@@ -123,7 +123,7 @@ export function RecordsManager({
  >
  {p.partNumber} / {p.serialNumber}
  </Link>
- {p.description && <span className="ml-2 text-xs text-[#7C8495]">{p.description}</span>}
+ {p.description && <span className="ml-2 text-xs text-[#8d877e]">{p.description}</span>}
  {p.scrapped && <span className="ml-2 text-xs text-[#FFE4E6]">scrapped</span>}
  </div>
  <button

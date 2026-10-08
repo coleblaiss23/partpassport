@@ -46,13 +46,13 @@ export function RtsDraftGenerator({
  }
 
  return (
- <div className="space-y-3 border border-[#1F2430] bg-[#12151C] p-4">
+ <div className="space-y-3 border border-[#2c2c2c] bg-[#111111] p-4">
  <div className="flex flex-wrap items-start justify-between gap-3">
  <div>
  <h3 className="text-sm font-semibold text-white">
  14 CFR 43.9 Return-to-Service Draft
  </h3>
- <p className="mt-1 text-xs text-[#B0B6C3]">
+ <p className="mt-1 text-xs text-[#c8c2b8]">
  One-click maintenance record text block for logbook entry. Verify
  against the original release before use.
  </p>
@@ -63,7 +63,7 @@ export function RtsDraftGenerator({
  </div>
  {draft && (
  <div className="space-y-2">
- <pre className="max-h-64 overflow-auto border border-[#1F2430] bg-[#0B0F14] p-3 pp-track text-[11px] leading-relaxed text-[#B0B6C3] whitespace-pre-wrap">
+ <pre className="max-h-64 overflow-auto border border-[#2c2c2c] bg-[#0a0a0a] p-3 pp-track text-[11px] leading-relaxed text-[#c8c2b8] whitespace-pre-wrap">
  {draft}
  </pre>
  <button type="button" className={btnSecondary} onClick={copy}>

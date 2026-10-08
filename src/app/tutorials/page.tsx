@@ -50,7 +50,7 @@ export default async function TutorialsPage() {
 
       {videos.length === 0 ? (
         <Card className="space-y-3">
-          <p className="text-sm text-[#B0B6C3]">
+          <p className="text-sm text-[#c8c2b8]">
             No published tutorials yet. Administrators can add embed URLs from the Admin console →
             Tutorials tab.
           </p>

@@ -22,7 +22,7 @@ export default function RequestForm({ source }: { source?: string }) {
  if (state === "done")
  return (
  <main className="mx-auto max-w-xl px-4 py-16">
- <Card className="space-y-2 text-center"><h1 className="text-2xl font-semibold text-white">Thanks, we&apos;ll be in touch</h1><p className="text-[#B0B6C3]">We&apos;ll email you within one business day to set up your account.</p></Card>
+ <Card className="space-y-2 text-center"><h1 className="text-2xl font-semibold text-white">Thanks, we&apos;ll be in touch</h1><p className="text-[#c8c2b8]">We&apos;ll email you within one business day to set up your account.</p></Card>
  </main>
  );
 

@@ -11,6 +11,7 @@ const db = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/prisma", () => ({ prisma: db }));
 
+import { PLAN_LIMITS } from "@/lib/planLimits";
 import { POST as createOrg } from "./organizations/route";
 import { POST as registerPart } from "./parts/route";
 import { POST as commitEvent } from "./parts/[id]/events/route";
@@ -18,7 +19,7 @@ import { POST as analyze } from "./certificates/analyze/route";
 import { GET as listKeys } from "./keys/route";
 
 const KEY = "pp_live_" + "a".repeat(48);
-const org = { id: "org1", name: "Test Org", active: true, plan: "PILOT", subStatus: null, publicKey: "pub" };
+const org = { id: "org1", name: "Test Org", active: true, plan: "STARTER", subStatus: null, publicKey: "pub" };
 const call = (path: string, init: { method?: string; key?: string; admin?: string; body?: unknown } = {}) =>
  new Request(`http://localhost${path}`, {
  method: init.method ?? "POST",
@@ -43,7 +44,7 @@ describe("organization creation", () => {
  expect(db.organization.create).not.toHaveBeenCalled();
  });
  it("creates an organization for the admin and returns secrets once", async () => {
- db.organization.create.mockResolvedValue({ id: "o2", name: "Acme", plan: "PILOT", publicKey: "pub" });
+ db.organization.create.mockResolvedValue({ id: "o2", name: "Acme", plan: "STARTER", publicKey: "pub" });
  const res = await createOrg(call("/api/organizations", { admin: "t".repeat(40), body: { name: "Acme" } }));
  const j = await res.json();
  expect(res.status).toBe(201);
@@ -67,7 +68,7 @@ describe("API key authentication", () => {
 describe("plan limits", () => {
  it("blocks registration at the monthly limit", async () => {
  asOrg();
- db.partEvent.count.mockResolvedValue(10);
+ db.partEvent.count.mockResolvedValue(PLAN_LIMITS.STARTER.registrations);
  const res = await registerPart(call("/api/parts", { key: KEY, body: { draft: {}, signature: "x" } }));
  expect(res.status).toBe(402);
  expect((await res.json()).error).toMatch(/limit/i);
@@ -79,7 +80,7 @@ describe("plan limits", () => {
  });
  it("blocks certificate checks at the monthly limit before any AI call", async () => {
  asOrg();
- db.certificateCheck.count.mockResolvedValue(15);
+ db.certificateCheck.count.mockResolvedValue(PLAN_LIMITS.STARTER.checks);
  const res = await analyze(call("/api/certificates/analyze", { key: KEY, body: {} }));
  expect(res.status).toBe(402);
  });

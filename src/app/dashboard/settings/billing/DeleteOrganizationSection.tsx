@@ -34,13 +34,13 @@ export function DeleteOrganizationSection({ orgName }: { orgName: string }) {
  return (
  <Card className="border-[#9F1239] bg-[#1A0A10] space-y-4">
  <h2 className="text-base font-semibold text-[#FFE4E6]">Danger Zone</h2>
- <p className="text-sm text-[#B0B6C3]">Permanently delete organization and all data.</p>
+ <p className="text-sm text-[#c8c2b8]">Permanently delete organization and all data.</p>
  <form onSubmit={handleDelete} className="space-y-3 max-w-md">
  <input
  type="text"
  value={confirmName}
  onChange={(e) => setConfirmName(e.target.value)}
- className="w-full rounded border border-[#222A3B] bg-[#12151C] px-3 py-2 text-sm text-white"
+ className="w-full rounded border border-[#3d3d3d] bg-[#111111] px-3 py-2 text-sm text-white"
  placeholder={orgName}
  />
  {err && <p className="text-xs text-[#FFE4E6]">{err}</p>}

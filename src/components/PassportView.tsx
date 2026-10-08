@@ -66,8 +66,8 @@ export default function PassportView({
  <h1 className="pp-track text-2xl font-semibold text-white">
  {r.partNumber} / {r.serialNumber}
  </h1>
- {r.description && <p className="mt-1 text-sm text-[#B0B6C3]">{r.description}</p>}
- <p className="mt-1 text-xs text-[#7C8495]">
+ {r.description && <p className="mt-1 text-sm text-[#c8c2b8]">{r.description}</p>}
+ <p className="mt-1 text-xs text-[#8d877e]">
  Current custodian: {r.custodian ?? "unknown"}
  {r.custodyStatus ? (
  <>
@@ -77,9 +77,9 @@ export default function PassportView({
  ) : null}
  </p>
  {r.birthCertificateHash ? (
- <p className="mt-1 break-all text-xs text-[#7C8495]">
+ <p className="mt-1 break-all text-xs text-[#8d877e]">
  Birth certificate:{" "}
- <span className="pp-track text-[#B0B6C3]">{r.birthCertificateHash.slice(0, 16)}…</span>
+ <span className="pp-track text-[#c8c2b8]">{r.birthCertificateHash.slice(0, 16)}…</span>
  </p>
  ) : null}
  </div>
@@ -96,7 +96,7 @@ export default function PassportView({
  {r.isLifeLimited && (
  <div
  className={
- life.expired ? bannerFail : life.approaching ? bannerWarn : "rounded-[4px] border border-[#1F2430] bg-[#12151C] p-4"
+ life.expired ? bannerFail : life.approaching ? bannerWarn : "rounded-[4px] border border-[#2c2c2c] bg-[#111111] p-4"
  }
  >
  <p className="text-sm font-medium text-white">Component genealogy / life limits</p>
@@ -119,7 +119,7 @@ export default function PassportView({
  />
  </div>
  {life.reasons.length > 0 && (
- <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-[#B0B6C3]">
+ <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-[#c8c2b8]">
  {life.reasons.map((msg) => (
  <li key={msg}>{msg}</li>
  ))}
@@ -136,7 +136,7 @@ export default function PassportView({
  {r.valid ? (
  <div className={bannerPass}>
  <p className="font-medium text-white">Chain of custody ledger intact</p>
- <p className="mt-1 text-sm text-[#B0B6C3]">
+ <p className="mt-1 text-sm text-[#c8c2b8]">
  All {r.eventsCount} events link correctly and every signature matches its organization.
  Nothing has been altered since it was recorded.
  </p>
@@ -144,7 +144,7 @@ export default function PassportView({
  ) : (
  <div className={bannerFail}>
  <p className="font-medium text-white">Chain of custody ledger failed verification</p>
- <p className="mt-1 text-sm text-[#B0B6C3]">
+ <p className="mt-1 text-sm text-[#c8c2b8]">
  {"reason" in r ? (REASONS[r.reason] ?? r.reason) : ""} Do not rely on this history.
  </p>
  </div>
@@ -184,11 +184,11 @@ export default function PassportView({
  className={`group rounded-[4px] border px-3 py-2 ${
  e.id === broken
  ? "border-[#9F1239] bg-[#1A0A10]"
- : "border-[#1F2430] bg-[#0B0F14]"
+ : "border-[#2c2c2c] bg-[#0a0a0a]"
  }`}
  >
  <summary className="flex cursor-pointer flex-wrap items-center gap-x-3 gap-y-1 text-sm">
- <span className="pp-track text-[#7C8495]">#{e.seq}</span>
+ <span className="pp-track text-[#8d877e]">#{e.seq}</span>
  <Badge tone={TONE[e.eventType] ?? "slate"}>
  {e.eventType.charAt(0) + e.eventType.slice(1).toLowerCase()}
  </Badge>
@@ -196,7 +196,7 @@ export default function PassportView({
  <Badge tone={e.organization.verified ? "green" : "slate"}>
  {e.organization.verified ? "Verified issuer" : "Unverified issuer"}
  </Badge>
- <span className="ml-auto pp-track text-xs text-[#7C8495]">
+ <span className="ml-auto pp-track text-xs text-[#8d877e]">
  {e.timestamp.slice(0, 16).replace("T", " ")} UTC
  </span>
  </summary>
@@ -208,35 +208,35 @@ export default function PassportView({
  )}
  {notes(e.data) && (
  <div>
- <dt className="text-[#7C8495]">Notes</dt>
+ <dt className="text-[#8d877e]">Notes</dt>
  <dd className="text-white">{notes(e.data)}</dd>
  </div>
  )}
  <div>
- <dt className="text-[#7C8495]">Event hash</dt>
- <dd className="break-all pp-track text-[#B0B6C3]">{e.eventHash}</dd>
+ <dt className="text-[#8d877e]">Event hash</dt>
+ <dd className="break-all pp-track text-[#c8c2b8]">{e.eventHash}</dd>
  </div>
  <div>
- <dt className="text-[#7C8495]">Previous hash</dt>
- <dd className="break-all pp-track text-[#B0B6C3]">
+ <dt className="text-[#8d877e]">Previous hash</dt>
+ <dd className="break-all pp-track text-[#c8c2b8]">
  {e.prevEventHash ?? "none (first event)"}
  </dd>
  </div>
  <div>
- <dt className="text-[#7C8495]">Signature</dt>
- <dd className="break-all pp-track text-[#B0B6C3]">{e.signature}</dd>
+ <dt className="text-[#8d877e]">Signature</dt>
+ <dd className="break-all pp-track text-[#c8c2b8]">{e.signature}</dd>
  </div>
  {e.certificateHash && (
  <div>
- <dt className="text-[#7C8495]">Attached certificate hash</dt>
- <dd className="break-all pp-track text-[#B0B6C3]">{e.certificateHash}</dd>
+ <dt className="text-[#8d877e]">Attached certificate hash</dt>
+ <dd className="break-all pp-track text-[#c8c2b8]">{e.certificateHash}</dd>
  </div>
  )}
  </dl>
  </details>
  ))}
  </Card>
- <p className="text-xs text-[#7C8495]">
+ <p className="text-xs text-[#8d877e]">
  PartPassport provides cryptographic record integrity and does not certify airworthiness.
  Safety-data matches cover only the FAA and other sources imported into PartPassport and are
  not exhaustive.

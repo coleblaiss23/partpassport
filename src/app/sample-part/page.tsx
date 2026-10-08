@@ -18,7 +18,7 @@ export default async function SamplePart({
  <PassportView
  r={r}
  banner={
- <div className="flex flex-wrap items-center justify-between gap-3 rounded border border-[#1F2430] bg-[#12151C] p-3 text-sm text-[#B0B6C3]">
+ <div className="flex flex-wrap items-center justify-between gap-3 rounded border border-[#2c2c2c] bg-[#111111] p-3 text-sm text-[#c8c2b8]">
  <span>
  Sample passport. Organizations are fictional; signatures are checked when
  this page loads.

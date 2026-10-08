@@ -18,10 +18,13 @@ export function AuditShareManager({
   initial,
   checks,
   parts,
+  asOf,
 }: {
   initial: ShareRow[];
   checks: { id: string; fileName: string; createdAt: string }[];
   parts: { id: string; partNumber: string; serialNumber: string }[];
+  /** Request time from the server so active / expired badges stay stable across renders. */
+  asOf: string;
 }) {
   const [shares, setShares] = useState(initial);
   const [pending, start] = useTransition();
@@ -72,6 +75,8 @@ export function AuditShareManager({
     });
   }
 
+  const now = new Date(asOf).getTime();
+
   const options =
     packageType === "CERT_CHECK"
       ? checks.map((c) => ({ value: c.id, label: `${c.fileName} · ${c.createdAt.slice(0, 10)}` }))
@@ -90,7 +95,7 @@ export function AuditShareManager({
       <Card className="space-y-4">
         <h2 className="font-medium text-white">Create secure share link</h2>
         <form onSubmit={create} className="space-y-3">
-          <label className="block text-xs text-[#B0B6C3]">
+          <label className="block text-xs text-[#c8c2b8]">
             Package type
             <select
               className={`${inputCls} mt-1`}
@@ -104,7 +109,7 @@ export function AuditShareManager({
               <option value="PART_PASSPORT">Part passport (chain)</option>
             </select>
           </label>
-          <label className="block text-xs text-[#B0B6C3]">
+          <label className="block text-xs text-[#c8c2b8]">
             Resource
             <select
               required
@@ -121,7 +126,7 @@ export function AuditShareManager({
             </select>
           </label>
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="block text-xs text-[#B0B6C3]">
+            <label className="block text-xs text-[#c8c2b8]">
               Label (optional)
               <input
                 className={`${inputCls} mt-1`}
@@ -130,7 +135,7 @@ export function AuditShareManager({
                 placeholder="Airline QA review"
               />
             </label>
-            <label className="block text-xs text-[#B0B6C3]">
+            <label className="block text-xs text-[#c8c2b8]">
               Expires in (hours)
               <input
                 className={`${inputCls} mt-1`}
@@ -150,7 +155,7 @@ export function AuditShareManager({
 
         {freshUrl && (
           <div className="border border-[#1F6B47] bg-[#14281F] p-3">
-            <p className="text-xs text-[#B0B6C3]">
+            <p className="text-xs text-[#c8c2b8]">
               Copy this link now — the full token is shown once.
             </p>
             <p className="pp-track mt-2 break-all text-sm text-white">{freshUrl}</p>
@@ -169,12 +174,12 @@ export function AuditShareManager({
         <h2 className="text-lg font-medium text-white">Active &amp; recent shares</h2>
         {shares.length === 0 ? (
           <Card>
-            <p className="text-sm text-[#B0B6C3]">No share links yet.</p>
+            <p className="text-sm text-[#c8c2b8]">No share links yet.</p>
           </Card>
         ) : (
-          <div className="overflow-hidden rounded-[4px] border border-[#1F2430]">
+          <div className="overflow-hidden rounded-[4px] border border-[#2c2c2c]">
             <table className="w-full text-sm">
-              <thead className="bg-[#12151C] text-left text-xs uppercase tracking-wider text-[#7C8495]">
+              <thead className="bg-[#111111] text-left text-xs uppercase tracking-wider text-[#8d877e]">
                 <tr>
                   <th className="px-4 py-3">Label</th>
                   <th className="px-4 py-3">Type</th>
@@ -183,15 +188,15 @@ export function AuditShareManager({
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#1F2430]">
+              <tbody className="divide-y divide-[#2c2c2c]">
                 {shares.map((s) => {
-                  const expired = new Date(s.expiresAt).getTime() < Date.now();
+                  const expired = new Date(s.expiresAt).getTime() < now;
                   const revoked = !!s.revokedAt;
                   return (
-                    <tr key={s.id} className="bg-[#0B0F14]">
+                    <tr key={s.id} className="bg-[#0a0a0a]">
                       <td className="px-4 py-3 text-white">{s.label || "—"}</td>
-                      <td className="px-4 py-3 text-[#B0B6C3]">{s.packageType}</td>
-                      <td className="pp-track px-4 py-3 text-[#B0B6C3]">
+                      <td className="px-4 py-3 text-[#c8c2b8]">{s.packageType}</td>
+                      <td className="pp-track px-4 py-3 text-[#c8c2b8]">
                         {s.expiresAt.slice(0, 16).replace("T", " ")}
                       </td>
                       <td className="px-4 py-3">

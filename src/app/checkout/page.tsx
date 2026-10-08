@@ -4,13 +4,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Card, btnPrimary, btnSecondary, inputCls } from "@/components/ui";
 import { PricingMatrix } from "@/components/PricingMatrix";
+import { DEFAULT_LIMITS, normalizePlanId } from "@/lib/planLimits";
 
 function CheckoutForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const plan = (searchParams.get("plan") ?? "PRO").toUpperCase();
+  const plan = normalizePlanId(searchParams.get("plan") ?? "PROFESSIONAL");
   const success = searchParams.get("success") === "1";
-  const isPilot = plan === "PILOT";
+  const planName = DEFAULT_LIMITS[plan].name;
   const [companyName, setCompanyName] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -21,9 +22,7 @@ function CheckoutForm() {
     setBusy(true);
     setErr("");
     try {
-      const body: { plan: string; companyName?: string } = {
-        plan: isPilot ? "PILOT" : "PRO",
-      };
+      const body: { plan: string; companyName?: string } = { plan };
       if (companyName.trim()) body.companyName = companyName.trim();
 
       const r = await fetch("/api/billing/checkout", {
@@ -60,8 +59,8 @@ function CheckoutForm() {
   if (success) {
     return (
       <Card className="space-y-4 text-center">
-        <h1 className="text-xl font-semibold text-white">You&apos;re on MRO Professional</h1>
-        <p className="text-sm text-[#B0B6C3]">
+        <h1 className="text-xl font-semibold text-white">You&apos;re on {planName}</h1>
+        <p className="text-sm text-[#c8c2b8]">
           {searchParams.get("dev") === "1"
             ? "Local billing mock applied this upgrade (no Stripe charge)."
             : "Your subscription is active."}
@@ -82,7 +81,7 @@ function CheckoutForm() {
     <div className="space-y-8">
       <div className="space-y-2 text-center">
         <h1 className="text-2xl font-semibold text-white">Checkout</h1>
-        <p className="text-sm text-[#B0B6C3]">
+        <p className="text-sm text-[#c8c2b8]">
           Confirm your plan below. Payment details stay on the next step — not mixed into the
           pricing matrix.
         </p>
@@ -91,13 +90,11 @@ function CheckoutForm() {
       <PricingMatrix mode="public" stripeReady />
 
       <Card className="mx-auto max-w-md space-y-4">
-        <h2 className="text-sm font-semibold text-white">
-          {isPilot ? "Start free Pilot" : "Payment summary — MRO Professional"}
-        </h2>
+        <h2 className="text-sm font-semibold text-white">Payment summary — {planName}</h2>
         <form onSubmit={startCheckout} className="space-y-4">
           {needsName && (
             <div className="space-y-1">
-              <label className="text-xs font-medium text-[#B0B6C3]">
+              <label className="text-xs font-medium text-[#c8c2b8]">
                 Company / Repair Station Name
               </label>
               <input
@@ -113,13 +110,13 @@ function CheckoutForm() {
           )}
           {err && <p className="text-xs text-[#FFE4E6]">{err}</p>}
           <button type="submit" disabled={busy} className={`${btnPrimary} w-full text-base`}>
-            {busy ? "Working…" : isPilot ? "Start free" : "Continue to payment"}
+            {busy ? "Working…" : "Continue to payment"}
           </button>
         </form>
-        <p className="text-center text-xs text-[#7C8495]">
+        <p className="text-center text-xs text-[#8d877e]">
           No account yet?{" "}
           <Link
-            href={`/signup?plan=${isPilot ? "pilot" : "pro"}`}
+            href={`/signup?plan=${plan.toLowerCase()}`}
             className="text-[#1F6B47] hover:underline"
           >
             Sign up
@@ -137,7 +134,7 @@ function CheckoutForm() {
 export default function CheckoutPage() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-12">
-      <Suspense fallback={<Card className="p-6 text-sm text-[#B0B6C3]">Loading checkout…</Card>}>
+      <Suspense fallback={<Card className="p-6 text-sm text-[#c8c2b8]">Loading checkout…</Card>}>
         <CheckoutForm />
       </Suspense>
     </main>

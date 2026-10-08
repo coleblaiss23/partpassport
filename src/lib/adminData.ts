@@ -6,9 +6,9 @@ import { getAdminDevFlags } from "@/lib/adminFlags";
 
 /** List prices used for estimated MRR (matches pricing page). */
 export const PLAN_MRR_USD: Record<PlanId, number> = {
- PILOT: 0,
- PRO: 499,
- ENTERPRISE: 1999,
+  STARTER: 299,
+  PROFESSIONAL: 599,
+  ENTERPRISE: 899,
 };
 
 export async function adminOverviewMetrics() {
@@ -19,7 +19,7 @@ export async function adminOverviewMetrics() {
  prisma.organization.findMany({
  where: {
  active: true,
- plan: { in: ["PRO", "ENTERPRISE"] },
+ plan: { in: ["STARTER", "PROFESSIONAL", "ENTERPRISE"] },
  OR: [{ subStatus: null }, { subStatus: { notIn: ["canceled", "unpaid", "incomplete_expired"] } }],
  },
  select: { plan: true, subStatus: true },

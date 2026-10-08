@@ -10,12 +10,12 @@ export default function SigningGate({ children }: { children: React.ReactNode })
  const [pass, setPass] = useState("");
  const [err, setErr] = useState("");
 
- if (!v.ready) return <Card><p className="text-sm text-[#B0B6C3]">Loading…</p></Card>;
+ if (!v.ready) return <Card><p className="text-sm text-[#c8c2b8]">Loading…</p></Card>;
  if (!v.org || !v.hasVault)
  return (
  <Card className="space-y-3">
  <h2 className="text-lg font-semibold text-white">Connect your organization</h2>
- <p className="text-sm text-[#B0B6C3]">Connect once with your API key and private key. After that you won&apos;t need to paste them again.</p>
+ <p className="text-sm text-[#c8c2b8]">Connect once with your API key and private key. After that you won&apos;t need to paste them again.</p>
  <Link href="/connect" className={btnPrimary}>Connect organization</Link>
  </Card>
  );

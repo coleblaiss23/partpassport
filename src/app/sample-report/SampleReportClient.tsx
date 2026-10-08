@@ -64,14 +64,14 @@ function Cell({
 }) {
   return (
     <div
-      className={`relative border border-[#7C8495] px-1.5 pb-1 pt-0.5 ${
+      className={`relative border border-[#8d877e] px-1.5 pb-1 pt-0.5 ${
         flag ? "bg-rose-50 outline outline-2 outline-offset-[-1px] outline-rose-600" : "bg-white"
       } ${span ?? ""} ${className}`}
     >
-      <p className="text-[8px] font-semibold uppercase leading-tight tracking-wide text-[#7C8495]">
+      <p className="text-[8px] font-semibold uppercase leading-tight tracking-wide text-[#8d877e]">
         {no}. {label}
       </p>
-      <p className="min-h-[1.1rem] font-mono text-[11px] leading-snug text-[#0B0F14]">{children}</p>
+      <p className="min-h-[1.1rem] font-mono text-[11px] leading-snug text-[#0a0a0a]">{children}</p>
       {flag ? <Pin n={flag} /> : null}
     </div>
   );
@@ -80,11 +80,11 @@ function Cell({
 /** Standard FAA Form 8130-3 block grid (approximate printable layout). */
 function Form8130Preview() {
   return (
-    <div className="overflow-hidden rounded-[4px] border border-[#222A3B] bg-[#E8EAED] p-3">
-      <p className="mb-2 text-center text-[10px] font-medium uppercase tracking-wide text-[#7C8495]">
+    <div className="overflow-hidden rounded-[4px] border border-[#3d3d3d] bg-[#E8EAED] p-3">
+      <p className="mb-2 text-center text-[10px] font-medium uppercase tracking-wide text-[#8d877e]">
         FAA Form 8130-3 · Authorized Release Certificate (block coordinates)
       </p>
-      <div className="border border-[#7C8495] bg-white text-left">
+      <div className="border border-[#8d877e] bg-white text-left">
         {/* Header row: Blocks 1–3 */}
         <div className="grid grid-cols-12">
           <Cell no="1" label="Approving CAA / Country" className="col-span-4">
@@ -164,12 +164,12 @@ function Form8130Preview() {
 /** FAA Form 8330-1 style Malfunction or Defect Report sections. */
 function Form8330Preview() {
   return (
-    <div className="overflow-hidden rounded-[4px] border border-[#222A3B] bg-[#E8EAED] p-3">
-      <p className="mb-2 text-center text-[10px] font-medium uppercase tracking-wide text-[#7C8495]">
+    <div className="overflow-hidden rounded-[4px] border border-[#3d3d3d] bg-[#E8EAED] p-3">
+      <p className="mb-2 text-center text-[10px] font-medium uppercase tracking-wide text-[#8d877e]">
         FAA Form 8330-1 · Malfunction or Defect Report (section coordinates)
       </p>
-      <div className="border border-[#7C8495] bg-white text-left">
-        <div className="border-b border-[#7C8495] bg-[#0B0F14] px-2 py-1 text-center text-[10px] font-bold text-white">
+      <div className="border border-[#8d877e] bg-white text-left">
+        <div className="border-b border-[#8d877e] bg-[#0a0a0a] px-2 py-1 text-center text-[10px] font-bold text-white">
           MALFUNCTION OR DEFECT REPORT
         </div>
         <div className="grid grid-cols-2">
@@ -216,7 +216,7 @@ export default function SampleReportClient() {
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-10">
-      <p className="mb-6 text-sm text-[#B0B6C3]">
+      <p className="mb-6 text-sm text-[#c8c2b8]">
         Fictional certificate for demonstration. OCR discrepancy pins map to the same block
         coordinates shops see on standard FAA forms.
       </p>
@@ -226,16 +226,16 @@ export default function SampleReportClient() {
           <h1 className="font-mono text-2xl font-semibold text-white">
             DEMO-CERT-200 / SN-4402
           </h1>
-          <p className="mt-1 text-sm text-[#7C8495]">
+          <p className="mt-1 text-sm text-[#8d877e]">
             Ridgeline Aero Repair (fictional) · 2026-09-14
           </p>
         </div>
-        <div className="flex rounded-[4px] border border-[#1F2430] p-0.5">
+        <div className="flex rounded-[4px] border border-[#2c2c2c] p-0.5">
           <button
             type="button"
             onClick={() => setForm("8130-3")}
             className={`rounded-[4px] px-3 py-1.5 text-sm ${
-              form === "8130-3" ? "bg-[#161B24] text-white" : "text-[#B0B6C3] hover:text-white"
+              form === "8130-3" ? "bg-[#171717] text-white" : "text-[#c8c2b8] hover:text-white"
             }`}
           >
             Form 8130-3
@@ -244,7 +244,7 @@ export default function SampleReportClient() {
             type="button"
             onClick={() => setForm("8330-1")}
             className={`rounded-[4px] px-3 py-1.5 text-sm ${
-              form === "8330-1" ? "bg-[#161B24] text-white" : "text-[#B0B6C3] hover:text-white"
+              form === "8330-1" ? "bg-[#171717] text-white" : "text-[#c8c2b8] hover:text-white"
             }`}
           >
             Form 8330-1
@@ -256,7 +256,7 @@ export default function SampleReportClient() {
         {form === "8130-3" ? <Form8130Preview /> : <Form8330Preview />}
 
         <div className="space-y-4">
-          <section className="rounded-[4px] border border-[#222A3B] bg-[#12151C] p-4">
+          <section className="rounded-[4px] border border-[#3d3d3d] bg-[#111111] p-4">
             <h2 className="text-sm font-semibold text-white">
               Review recommended ({findings.length} findings)
             </h2>
@@ -267,27 +267,27 @@ export default function SampleReportClient() {
                     {f.n}
                   </span>
                   <span>
-                    <span className="pp-track text-[#7C8495]">Blk {f.block}</span> · {f.text}
+                    <span className="pp-track text-[#8d877e]">Blk {f.block}</span> · {f.text}
                   </span>
                 </li>
               ))}
             </ol>
           </section>
 
-          <section className="rounded-[4px] border border-[#222A3B] bg-[#12151C] p-4">
+          <section className="rounded-[4px] border border-[#3d3d3d] bg-[#111111] p-4">
             <h2 className="text-sm font-semibold text-white">Safety data matches (1)</h2>
-            <p className="mt-2 text-sm text-[#B0B6C3]">
+            <p className="mt-2 text-sm text-[#c8c2b8]">
               <span className="font-mono">AD TEST-AD-0002</span>: fictional directive for
               demonstration
             </p>
           </section>
 
           {form === "8130-3" && (
-            <table className="w-full border border-[#1F2430] text-sm">
+            <table className="w-full border border-[#2c2c2c] text-sm">
               <tbody>
                 {fields8130.map(([k, v]) => (
-                  <tr key={k} className="border-b border-[#1F2430] last:border-0">
-                    <td className="w-44 p-2.5 text-[#B0B6C3]">{k}</td>
+                  <tr key={k} className="border-b border-[#2c2c2c] last:border-0">
+                    <td className="w-44 p-2.5 text-[#c8c2b8]">{k}</td>
                     <td
                       className={`p-2.5 ${
                         v === "not found" || v === "No" ? "text-[#FFE4E6]" : "text-white"
@@ -301,12 +301,12 @@ export default function SampleReportClient() {
             </table>
           )}
 
-          <p className="break-all font-mono text-[11px] text-[#7C8495]">
+          <p className="break-all font-mono text-[11px] text-[#8d877e]">
             File SHA-256:
             9f2c41d0a7e35b18c6d94f0e2a7b53c8d1e6f4a90b2c7d5e83f1a6b4c09d7e21
           </p>
 
-          <p className="text-xs text-[#7C8495]">
+          <p className="text-xs text-[#8d877e]">
             Automated records review only. Not an airworthiness determination. Safety-data matches
             cover only sources imported into PartPassport.
           </p>

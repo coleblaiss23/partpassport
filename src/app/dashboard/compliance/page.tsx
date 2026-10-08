@@ -38,6 +38,7 @@ export default async function CompliancePage() {
         <SafetyMonitorBanner alerts={alerts} />
       </div>
       <ComplianceManager
+        asOf={new Date().toISOString()}
         initial={items.map((i) => ({
           id: i.id,
           category: i.category,

@@ -12,15 +12,30 @@ const prod = env("NODE_ENV") === "production";
   env("DATABASE_URL").startsWith("postgres") ? out("PASS", "DATABASE_URL is a Postgres URL") : out("FAIL", "DATABASE_URL missing or not postgresql://");
   env("ADMIN_TOKEN").length >= 32 ? out("PASS", "ADMIN_TOKEN is strong") : out("WARN", "ADMIN_TOKEN should be 32+ characters (openssl rand -hex 32)");
   env("SESSION_SECRET").length >= 32 ? out("PASS", "SESSION_SECRET is strong") : out("FAIL", "SESSION_SECRET missing or under 32 characters");
-  if (env("AI_MODE") === "mock") out("WARN", "AI_MODE=mock is treated as local; prefer AI_MODE=local");
-  else if (env("AI_MODE") === "off") out("WARN", "AI_MODE=off: certificate analysis is disabled");
-  else if (env("AI_MODE") === "local") out("PASS", "AI_MODE=local (free PDF text extraction; scanned forms need Anthropic)");
-  else env("ANTHROPIC_API_KEY") ? out("PASS", "ANTHROPIC_API_KEY set (real AI analysis)") : out(prod ? "WARN" : "PASS", prod ? "No ANTHROPIC_API_KEY: certificate analysis is off" : "No ANTHROPIC_API_KEY: development defaults to local PDF text extraction");
+  const aiMode = env("AI_MODE");
+  if (prod && (aiMode === "local" || aiMode === "mock"))
+    out("FAIL", `AI_MODE=${aiMode} in production uses Tesseract instead of Claude. Unset AI_MODE and set ANTHROPIC_API_KEY.`);
+  else if (aiMode === "mock") out("WARN", "AI_MODE=mock is treated as local; leave AI_MODE unset in production");
+  else if (aiMode === "off") out("WARN", "AI_MODE=off: certificate analysis is disabled");
+  else if (aiMode === "local") out("PASS", "AI_MODE=local (dev OCR only; do not set this in production)");
+  else env("ANTHROPIC_API_KEY")
+    ? out("PASS", "ANTHROPIC_API_KEY set (Claude extraction)")
+    : out(prod ? "FAIL" : "PASS", prod ? "No ANTHROPIC_API_KEY: production certificate analysis is off" : "No ANTHROPIC_API_KEY: development defaults to local PDF text extraction");
+  const model = env("ANTHROPIC_MODEL").trim();
+  if (model === "claude-sonnet-4-20250514")
+    out("FAIL", "ANTHROPIC_MODEL is stale (claude-sonnet-4-20250514). Set ANTHROPIC_MODEL=claude-sonnet-5-5 or unset it to use that default.");
+  else if (model) out("PASS", `ANTHROPIC_MODEL=${model}`);
+  else out("PASS", "ANTHROPIC_MODEL unset; runtime default is claude-sonnet-5-5");
   env("NEXT_PUBLIC_APP_URL") && !(prod && env("NEXT_PUBLIC_APP_URL").includes("localhost")) ? out("PASS", "NEXT_PUBLIC_APP_URL set") : out("WARN", "NEXT_PUBLIC_APP_URL missing or localhost");
   env("NEXT_PUBLIC_STRIPE_PAYMENT_LINK") ? out("PASS", "Stripe Payment Link set") : out("WARN", "NEXT_PUBLIC_STRIPE_PAYMENT_LINK not set (pricing button falls back to request-access)");
   env("STRIPE_WEBHOOK_SECRET") ? out("PASS", "STRIPE_WEBHOOK_SECRET set") : out("WARN", "STRIPE_WEBHOOK_SECRET not set: paid plans will not activate automatically");
-  if (env("STRIPE_SECRET_KEY") && env("STRIPE_PRICE_PRO")) out("PASS", "Stripe Checkout configured (STRIPE_SECRET_KEY + STRIPE_PRICE_PRO)");
-  else if (env("STRIPE_SECRET_KEY")) out("WARN", "STRIPE_SECRET_KEY set but STRIPE_PRICE_PRO missing (checkout incomplete)");
+  if (
+    env("STRIPE_SECRET_KEY") &&
+    (env("STRIPE_PRICE_PROFESSIONAL") || env("STRIPE_PRICE_STARTER") || env("STRIPE_PRICE_PRO"))
+  )
+    out("PASS", "Stripe Checkout configured (STRIPE_SECRET_KEY + price id)");
+  else if (env("STRIPE_SECRET_KEY"))
+    out("WARN", "STRIPE_SECRET_KEY set but no STRIPE_PRICE_* id (checkout incomplete)");
   else out(prod ? "WARN" : "PASS", prod ? "STRIPE_SECRET_KEY not set: Manage billing button is off" : "Stripe unset: development uses local billing mock");
   if (env("BILLING_DEV_MOCK") === "1" || env("BILLING_DEV_MOCK") === "true") out("PASS", "BILLING_DEV_MOCK enabled (browser plan switching)");
   else if (env("BILLING_DEV_MOCK") === "0" || env("BILLING_DEV_MOCK") === "off") out("WARN", "BILLING_DEV_MOCK disabled");

@@ -11,7 +11,7 @@ export default function DashboardError({
   return (
     <main className="mx-auto flex min-h-[40vh] max-w-lg flex-col items-center justify-center gap-4 px-4 py-16 text-center">
       <h1 className="text-xl font-semibold text-white">Dashboard view failed to load</h1>
-      <p className="text-sm text-[#B0B6C3]">
+      <p className="text-sm text-[#c8c2b8]">
         A database or rendering error interrupted this page. Secondary tools (custody, compliance,
         audit share) need the latest migration — run{" "}
         <code className="pp-track text-white">npx prisma migrate deploy</code> then restart{" "}

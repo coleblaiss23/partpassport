@@ -144,7 +144,7 @@ export default function ScannerPage() {
  <main className="mx-auto max-w-2xl space-y-6 px-4 py-8">
  <PageHeader title="Certificate intake" />
  <Card className="space-y-3">
- <p className="text-[#B0B6C3]">Connect your organization to run the deterministic OCR pipeline.</p>
+ <p className="text-[#c8c2b8]">Connect your organization to run the deterministic OCR pipeline.</p>
  <Link href="/connect" className={btnPrimary}>
  Connect organization
  </Link>
@@ -175,11 +175,11 @@ export default function ScannerPage() {
  addFiles(e.dataTransfer.files);
  }}
  className={`flex cursor-pointer flex-col items-center justify-center gap-1 border-2 border-dashed p-8 text-center transition ${
- drag ? "border-[#1F6B47] bg-[#14281F]" : "border-[#1F2430] hover:border-[#B0B6C3]"
+ drag ? "border-[#1F6B47] bg-[#14281F]" : "border-[#2c2c2c] hover:border-[#c8c2b8]"
  }`}
  >
  <span className="font-medium text-white">Drop PDFs here or click to browse</span>
- <span className="text-xs text-[#7C8495]">Up to 20 files, 10 MB each</span>
+ <span className="text-xs text-[#8d877e]">Up to 20 files, 10 MB each</span>
  <input
  type="file"
  accept="application/pdf"
@@ -199,7 +199,7 @@ export default function ScannerPage() {
  key={i.id}
  onClick={() => setSel(i.id)}
  className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm ${
- i.id === sel ? "bg-[#161B24]" : "hover:bg-[#0B0F14]"
+ i.id === sel ? "bg-[#171717]" : "hover:bg-[#0a0a0a]"
  }`}
  >
  <span className="truncate text-white">{i.file.name}</span>
@@ -213,7 +213,7 @@ export default function ScannerPage() {
  <iframe
  title="Certificate preview"
  src={cur.url}
- className="h-[65vh] w-full border border-[#1F2430] bg-white"
+ className="h-[65vh] w-full border border-[#2c2c2c] bg-white"
  />
  )}
  </div>
@@ -221,13 +221,13 @@ export default function ScannerPage() {
  <div className="space-y-4">
  {!cur && (
  <Card>
- <p className="text-sm text-[#B0B6C3]">Pipeline results appear here.</p>
+ <p className="text-sm text-[#c8c2b8]">Pipeline results appear here.</p>
  </Card>
  )}
 
  {cur?.status === "running" && (
  <Card>
- <p className="pp-track text-sm text-[#B0B6C3]">
+ <p className="pp-track text-sm text-[#c8c2b8]">
  Running deterministic OCR pipeline on {cur.file.name}…
  </p>
  </Card>
@@ -277,7 +277,7 @@ export default function ScannerPage() {
  : "No issues detected in the document"}
  </h2>
  {r.redFlags.length > 0 && (
- <ul className="ml-5 mt-2 list-disc space-y-1 text-sm text-[#B0B6C3]">
+ <ul className="ml-5 mt-2 list-disc space-y-1 text-sm text-[#c8c2b8]">
  {r.redFlags.map((f) => (
  <li key={f}>{f}</li>
  ))}
@@ -289,8 +289,8 @@ export default function ScannerPage() {
  <table className="w-full text-sm">
  <tbody>
  {FIELDS.map(([k, l]) => (
- <tr key={k} className="border-b border-[#1F2430] last:border-0">
- <td className="w-44 p-3 text-[#B0B6C3]">{l}</td>
+ <tr key={k} className="border-b border-[#2c2c2c] last:border-0">
+ <td className="w-44 p-3 text-[#c8c2b8]">{l}</td>
  <td
  className={`p-3 ${
  k === "partNumber" || k === "serial" || k === "trackingNumber" || k === "approvalNumber"
@@ -310,7 +310,7 @@ export default function ScannerPage() {
  </table>
  </Card>
 
- <p className="break-all text-xs text-[#7C8495]">
+ <p className="break-all text-xs text-[#8d877e]">
  File SHA-256: <span className="pp-track">{r.certificateHash}</span>
  </p>
 
@@ -327,7 +327,7 @@ export default function ScannerPage() {
  </Link>
  </div>
 
- <p className="text-xs text-[#7C8495]">
+ <p className="text-xs text-[#8d877e]">
  Automated records review only. This is not an airworthiness determination.
  </p>
  </>

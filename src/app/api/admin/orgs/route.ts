@@ -27,11 +27,12 @@ export async function PATCH(req: Request) {
  } = {};
 
  if (typeof body.plan === "string") {
- if (!["PILOT", "PRO", "ENTERPRISE"].includes(body.plan)) {
- return NextResponse.json({ error: "plan must be PILOT, PRO, or ENTERPRISE" }, { status: 400 });
+ if (!["STARTER", "PROFESSIONAL", "ENTERPRISE", "PILOT", "PRO"].includes(body.plan)) {
+ return NextResponse.json({ error: "plan must be STARTER, PROFESSIONAL, or ENTERPRISE" }, { status: 400 });
  }
- data.plan = body.plan as PlanId;
- data.subStatus = body.plan === "PILOT" ? null : "active";
+ const { normalizePlanId } = await import("@/lib/planLimits");
+ data.plan = normalizePlanId(body.plan);
+ data.subStatus = "active";
  }
  if (typeof body.active === "boolean") data.active = body.active;
 

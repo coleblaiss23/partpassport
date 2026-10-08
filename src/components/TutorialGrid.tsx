@@ -29,7 +29,7 @@ export function TutorialVideoCard({ video }: { video: TutorialCard }) {
 
   return (
     <Card className="flex flex-col overflow-hidden p-0">
-      <div className="relative aspect-video bg-[#0B0F14]">
+      <div className="relative aspect-video bg-[#0a0a0a]">
         {src && open ? (
           <iframe
             title={video.title}
@@ -43,12 +43,12 @@ export function TutorialVideoCard({ video }: { video: TutorialCard }) {
             type="button"
             onClick={() => src && setOpen(true)}
             disabled={!src}
-            className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[#12151C] text-center disabled:cursor-default"
+            className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-[#111111] text-center disabled:cursor-default"
           >
-            <span className="flex h-12 w-12 items-center justify-center rounded-[4px] border border-[#222A3B] bg-[#0B0F14] text-white">
+            <span className="flex h-12 w-12 items-center justify-center rounded-[4px] border border-[#3d3d3d] bg-[#0a0a0a] text-white">
               ▶
             </span>
-            <span className="px-4 text-xs text-[#7C8495]">
+            <span className="px-4 text-xs text-[#8d877e]">
               {src ? "Play tutorial" : "Embed URL not configured yet"}
             </span>
           </button>
@@ -58,12 +58,12 @@ export function TutorialVideoCard({ video }: { video: TutorialCard }) {
         <div className="flex flex-wrap items-center gap-2">
           <Badge tone="slate">{categoryLabel(video.category)}</Badge>
           {video.duration ? (
-            <span className="pp-track text-[10px] text-[#7C8495]">{video.duration}</span>
+            <span className="pp-track text-[10px] text-[#8d877e]">{video.duration}</span>
           ) : null}
         </div>
         <h3 className="text-sm font-semibold text-white">{video.title}</h3>
         {video.description ? (
-          <p className="text-sm leading-relaxed text-[#B0B6C3]">{video.description}</p>
+          <p className="text-sm leading-relaxed text-[#c8c2b8]">{video.description}</p>
         ) : null}
       </div>
     </Card>

@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { getSessionOrg } from "@/lib/sessionOrg";
 import { normPN, serialInRange } from "@/lib/normalize";
 import type { Extracted } from "@/lib/extract";
 import type { AvlCheckResult } from "@/lib/avl";
@@ -10,9 +11,11 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Audit report | PartPassport", robots: { index: false, follow: false } };
 
 export default async function ReportPage({ params }: { params: Promise<{ id: string }> }) {
+ const org = await getSessionOrg();
+ if (!org) notFound();
  const { id } = await params;
- const check = await prisma.certificateCheck.findUnique({
- where: { id },
+ const check = await prisma.certificateCheck.findFirst({
+ where: { id, organizationId: org.id },
  include: { organization: { select: { name: true, faaCertNumber: true } } },
  });
  if (!check) notFound();
@@ -43,7 +46,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
  ];
 
  return (
- <main className="min-h-[calc(100vh-57px)] bg-[#0B0F14] p-6 text-white md:p-12">
+ <main className="min-h-[calc(100vh-57px)] bg-[#0a0a0a] p-6 text-white md:p-12">
  <div className="mx-auto max-w-2xl space-y-6">
  <div>
  <span className="pp-track text-xs uppercase tracking-widest text-[#1F6B47]">
@@ -52,7 +55,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
  <h1 className="pp-track mt-1 text-2xl font-bold text-white">
  {x.partNumber ?? "Unknown part"} / {x.serial ?? "?"}
  </h1>
- <p className="pp-track mt-1 text-xs text-[#7C8495]">
+ <p className="pp-track mt-1 text-xs text-[#8d877e]">
  Prepared by {check.organization.name} on {check.createdAt.toISOString().slice(0, 10)}
  </p>
  </div>
@@ -76,7 +79,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
  ? `Review required (${flags.length} finding${flags.length > 1 ? "s" : ""})`
  : "No issues detected in the document"}
  </h2>
- <ul className="ml-5 mt-2 list-disc space-y-1 text-sm text-[#B0B6C3]">
+ <ul className="ml-5 mt-2 list-disc space-y-1 text-sm text-[#c8c2b8]">
  {flags.map((f) => (
  <li key={f}>{f}</li>
  ))}
@@ -86,7 +89,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
  {safety.length > 0 && (
  <section className="border border-[#9F1239] bg-[#1A0A10] p-4">
  <h2 className="font-semibold">Automated FAA UPN / safety cross-reference ({safety.length})</h2>
- <ul className="mt-2 space-y-1 text-sm text-[#B0B6C3]">
+ <ul className="mt-2 space-y-1 text-sm text-[#c8c2b8]">
  {safety.map((f) => (
  <li key={f.id}>
  <span className="pp-track">
@@ -99,11 +102,11 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
  </section>
  )}
 
- <table className="w-full border border-[#1F2430] text-sm">
+ <table className="w-full border border-[#2c2c2c] text-sm">
  <tbody>
  {rows.map(([k, v]) => (
- <tr key={k} className="border-b border-[#1F2430]">
- <td className="w-44 p-2 font-mono text-[#B0B6C3]">{k}</td>
+ <tr key={k} className="border-b border-[#2c2c2c]">
+ <td className="w-44 p-2 font-mono text-[#c8c2b8]">{k}</td>
  <td
  className={`p-2 ${
  String(k).includes("Part") || String(k).includes("Serial") || String(k).includes("Tracking")
@@ -124,8 +127,8 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
  faaCertNumber={check.organization.faaCertNumber}
  />
 
- <p className="pp-track break-all text-xs text-[#7C8495]">File SHA-256: {check.sha256}</p>
- <p className="text-xs text-[#7C8495]">
+ <p className="pp-track break-all text-xs text-[#8d877e]">File SHA-256: {check.sha256}</p>
+ <p className="text-xs text-[#8d877e]">
  This report is an automated records review. It is not an airworthiness determination.
  Safety-data matches cover only the FAA and other sources imported into PartPassport and are
  not exhaustive. A qualified, authorized person must decide whether a part may be installed.

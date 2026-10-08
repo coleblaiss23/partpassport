@@ -21,7 +21,7 @@ export default async function ShareViewPage({
   const tokenHash = hashShareToken(token);
   const share = await prisma.auditShare.findUnique({ where: { tokenHash } });
 
-  if (!share || share.revokedAt || share.expiresAt.getTime() < Date.now()) {
+  if (!share || share.revokedAt || share.expiresAt.getTime() < new Date().getTime()) {
     notFound();
   }
 
@@ -51,19 +51,19 @@ export default async function ShareViewPage({
       </div>
 
       <div>
-        <p className="text-[10px] uppercase tracking-wider text-[#7C8495]">Package type</p>
+        <p className="text-[10px] uppercase tracking-wider text-[#8d877e]">Package type</p>
         <h1 className="mt-1 text-2xl font-semibold text-white">{type.replace(/_/g, " ")}</h1>
       </div>
 
       {type === "CERT_CHECK" && (
         <>
           <Card className="space-y-2">
-            <p className="text-sm text-[#B0B6C3]">
+            <p className="text-sm text-[#c8c2b8]">
               Prepared by{" "}
               <span className="text-white">{String(payload.organization ?? "")}</span>
             </p>
             <p className="pp-track text-sm text-white">{String(payload.fileName ?? "")}</p>
-            <p className="break-all text-xs text-[#7C8495]">
+            <p className="break-all text-xs text-[#8d877e]">
               SHA-256: <span className="pp-track">{String(payload.sha256 ?? "")}</span>
             </p>
           </Card>
@@ -84,14 +84,14 @@ export default async function ShareViewPage({
             </div>
           )}
           {payload.extracted && typeof payload.extracted === "object" && (
-            <table className="w-full border border-[#1F2430] text-sm">
+            <table className="w-full border border-[#2c2c2c] text-sm">
               <tbody>
                 {Object.entries(payload.extracted as Record<string, unknown>)
                   .filter(([k]) => !k.startsWith("_"))
                   .slice(0, 24)
                   .map(([k, v]) => (
-                    <tr key={k} className="border-b border-[#1F2430]">
-                      <td className="w-44 p-2.5 text-[#B0B6C3]">{k}</td>
+                    <tr key={k} className="border-b border-[#2c2c2c]">
+                      <td className="w-44 p-2.5 text-[#c8c2b8]">{k}</td>
                       <td className="p-2.5 text-white">
                         {v == null || v === "" ? "—" : String(v)}
                       </td>
@@ -110,7 +110,7 @@ export default async function ShareViewPage({
               {String(payload.partNumber)} / {String(payload.serialNumber)}
             </h2>
             {payload.description ? (
-              <p className="mt-1 text-sm text-[#B0B6C3]">{String(payload.description)}</p>
+              <p className="mt-1 text-sm text-[#c8c2b8]">{String(payload.description)}</p>
             ) : null}
             <div className="mt-3 flex flex-wrap gap-2">
               <Badge
@@ -127,7 +127,7 @@ export default async function ShareViewPage({
               {payload.isLifeLimited ? <Badge tone="blue">Life-limited</Badge> : null}
             </div>
             {payload.birthCertificateHash ? (
-              <p className="mt-3 break-all text-xs text-[#7C8495]">
+              <p className="mt-3 break-all text-xs text-[#8d877e]">
                 Birth certificate hash:{" "}
                 <span className="pp-track">{String(payload.birthCertificateHash)}</span>
               </p>
@@ -136,7 +136,7 @@ export default async function ShareViewPage({
           {payload.chain && typeof payload.chain === "object" && (
             <Card>
               <h3 className="text-sm font-medium text-white">Chain summary</h3>
-              <pre className="mt-2 max-h-96 overflow-auto whitespace-pre-wrap break-all text-xs text-[#B0B6C3]">
+              <pre className="mt-2 max-h-96 overflow-auto whitespace-pre-wrap break-all text-xs text-[#c8c2b8]">
                 {JSON.stringify(payload.chain, null, 2)}
               </pre>
             </Card>
@@ -144,7 +144,7 @@ export default async function ShareViewPage({
         </>
       )}
 
-      <p className="text-xs text-[#7C8495]">{disclaimer}</p>
+      <p className="text-xs text-[#8d877e]">{disclaimer}</p>
     </main>
   );
 }

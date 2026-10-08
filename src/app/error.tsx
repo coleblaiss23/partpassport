@@ -18,13 +18,13 @@ export default function ErrorPage({
   return (
     <main className="mx-auto flex min-h-[60vh] max-w-lg flex-col items-center justify-center gap-4 px-4 text-center">
       <h1 className="text-2xl font-semibold text-white">Something went wrong</h1>
-      <p className="text-[#B0B6C3]">
+      <p className="text-[#c8c2b8]">
         The request didn&apos;t complete. If this is a new dashboard page (Custody, Compliance, or
         Audit share), confirm database migrations are applied and restart the dev server so Prisma
         picks up the latest client.
       </p>
       {detail && (
-        <p className="break-all rounded-[4px] border border-[#1F2430] bg-[#12151C] px-3 py-2 text-left text-xs text-[#7C8495]">
+        <p className="break-all rounded-[4px] border border-[#2c2c2c] bg-[#111111] px-3 py-2 text-left text-xs text-[#8d877e]">
           {detail}
         </p>
       )}

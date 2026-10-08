@@ -93,22 +93,22 @@ export default function PartForm({ initial }: { initial: Initial }) {
  />
  </Field>
 
- <p className="text-xs text-[#7C8495]">
+ <p className="text-xs text-[#8d877e]">
  New parts enter <span className="text-white">Quarantine</span> custody. Assign to Serviceable
  shelf from Operations → Custody after inspection.
  </p>
 
- <div className="border border-[#1F2430] bg-[#0B0F14] p-3 space-y-3">
+ <div className="border border-[#2c2c2c] bg-[#0a0a0a] p-3 space-y-3">
  <label className="flex items-center gap-2 text-sm text-white">
  <input
  type="checkbox"
  checked={f.isLifeLimited}
  onChange={(e) => setF({ ...f, isLifeLimited: e.target.checked })}
- className="border-[#1F2430]"
+ className="border-[#2c2c2c]"
  />
  Life-limited / serialized assembly (track time &amp; cycles)
  </label>
- <p className="text-xs text-[#7C8495]">
+ <p className="text-xs text-[#8d877e]">
  Component genealogy: record total time and cycles so expired units cannot be
  recorded as installed.
  </p>
@@ -166,9 +166,9 @@ export default function PartForm({ initial }: { initial: Initial }) {
  </button>
  </form>
  {done && (
- <div className="mt-5 space-y-3 border-t border-[#1F2430] pt-4">
+ <div className="mt-5 space-y-3 border-t border-[#2c2c2c] pt-4">
  <p className="text-sm text-white">Passport registered and signed.</p>
- <p className="break-all text-xs text-[#B0B6C3]">
+ <p className="break-all text-xs text-[#c8c2b8]">
  Part ID: <span className="pp-track text-white">{done.id}</span>
  </p>
  <div className="flex flex-wrap gap-2">

@@ -32,15 +32,15 @@ describe("stripe webhook signature", () => {
 });
 
 describe("stripe event interpretation", () => {
- it("activates PRO on checkout", () => {
+ it("activates PROFESSIONAL on checkout", () => {
  const r = interpretStripeEvent({ id: "e", type: "checkout.session.completed", data: { object: { mode: "subscription", client_reference_id: "org1", customer: "cus_1", subscription: "sub_1" } } });
- expect(r).toMatchObject({ match: { orgId: "org1" }, patch: { plan: "PRO", subStatus: "active", stripeCustomerId: "cus_1", stripeSubId: "sub_1" } });
+ expect(r).toMatchObject({ match: { orgId: "org1" }, patch: { plan: "PROFESSIONAL", subStatus: "active", stripeCustomerId: "cus_1", stripeSubId: "sub_1" } });
  });
  it("downgrades when a subscription is canceled", () => {
  const r = interpretStripeEvent({ id: "e", type: "customer.subscription.deleted", data: { object: { id: "sub_1", customer: "cus_1", current_period_end: 1_800_000_000 } } });
- expect(r?.patch).toMatchObject({ plan: "PILOT", subStatus: "canceled" });
+ expect(r?.patch).toMatchObject({ plan: "STARTER", subStatus: "canceled" });
  });
- it("keeps PRO but marks past_due on failed payment", () => {
+ it("marks past_due on failed payment", () => {
  const r = interpretStripeEvent({ id: "e", type: "invoice.payment_failed", data: { object: { customer: "cus_1" } } });
  expect(r?.patch).toEqual({ subStatus: "past_due" });
  });

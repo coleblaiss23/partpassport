@@ -78,14 +78,14 @@ function Importer() {
  <div className="space-y-4">
  <Card className="space-y-4">
  <div className="flex flex-wrap items-center justify-between gap-2">
- <p className="text-sm text-[#B0B6C3]">Upload a CSV with <span className="font-mono">partNumber</span> and <span className="font-mono">serialNumber</span> columns (description and certificateHash optional). Each row becomes a signed passport.</p>
+ <p className="text-sm text-[#c8c2b8]">Upload a CSV with <span className="font-mono">partNumber</span> and <span className="font-mono">serialNumber</span> columns (description and certificateHash optional). Each row becomes a signed passport.</p>
  <button className={btnSecondary} onClick={() => download(TEMPLATE, "part-passport-template.csv")}>Download template</button>
  </div>
  <input type="file" accept=".csv,text/csv" className={inputCls} disabled={running} onChange={(e) => onFile(e.target.files?.[0])} />
  {err && <p className="rounded-[4px] border border-[#9F1239] bg-[#1A0A10] p-3 text-sm text-[#FFE4E6]">{err}</p>}
  {rows.length > 0 && (
  <>
- <p className="text-sm text-[#B0B6C3]"><span className="font-medium text-white">{rows.length.toLocaleString()}</span> rows ready from {name}. First rows: {rows.slice(0, 3).map((r) => `${r.partNumber}/${r.serialNumber}`).join(", ")}</p>
+ <p className="text-sm text-[#c8c2b8]"><span className="font-medium text-white">{rows.length.toLocaleString()}</span> rows ready from {name}. First rows: {rows.slice(0, 3).map((r) => `${r.partNumber}/${r.serialNumber}`).join(", ")}</p>
  <div className="flex gap-2">
  <button className={btnPrimary} disabled={running} onClick={run}>{running ? "Importing…" : "Sign and import"}</button>
  {running && <button className={btnSecondary} onClick={() => { stop.current = true; }}>Stop after this batch</button>}
@@ -95,8 +95,8 @@ function Importer() {
  </Card>
  {(running || p.done > 0) && (
  <Card className="space-y-2">
- <div className="h-2 overflow-hidden rounded-[4px] bg-[#161B24]"><div className="h-full bg-[#1F6B47] transition-all" style={{ width: `${pct}%` }} /></div>
- <p className="text-sm text-[#B0B6C3]">{p.done.toLocaleString()} of {rows.length.toLocaleString()} processed: <span className="text-white">{p.created.toLocaleString()} created</span>, {p.skipped.toLocaleString()} already existed, <span className={p.failed ? "text-[#FFE4E6]" : ""}>{p.failed.toLocaleString()} failed</span></p>
+ <div className="h-2 overflow-hidden rounded-[4px] bg-[#171717]"><div className="h-full bg-[#1F6B47] transition-all" style={{ width: `${pct}%` }} /></div>
+ <p className="text-sm text-[#c8c2b8]">{p.done.toLocaleString()} of {rows.length.toLocaleString()} processed: <span className="text-white">{p.created.toLocaleString()} created</span>, {p.skipped.toLocaleString()} already existed, <span className={p.failed ? "text-[#FFE4E6]" : ""}>{p.failed.toLocaleString()} failed</span></p>
  {fails.length > 0 && <button className={btnSecondary} onClick={() => download("row,partNumber,serialNumber,error\n" + fails.map((f) => [f.row, f.partNumber, f.serialNumber, f.error].map((x) => `"${String(x).replace(/"/g, '""')}"`).join(",")).join("\n"), "import-errors.csv")}>Download error report ({fails.length})</button>}
  </Card>
  )}

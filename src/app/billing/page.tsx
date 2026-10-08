@@ -42,7 +42,7 @@ export default async function BillingPage({
         title="Billing"
         subtitle={`Plan for ${organization.name} · ${limits.checks.toLocaleString()} checks / month`}
         actions={
-          plan !== "PILOT" && !mock && stripeReady ? <BillingButton /> : undefined
+          plan !== "STARTER" && !mock && stripeReady ? <BillingButton /> : undefined
         }
       />
 
@@ -53,7 +53,7 @@ export default async function BillingPage({
       )}
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wider text-[#7C8495]">
+        <h2 className="text-sm font-semibold uppercase tracking-wider text-[#8d877e]">
           Choose a plan
         </h2>
         <PricingMatrix
@@ -71,11 +71,11 @@ export default async function BillingPage({
           <Link href="/dashboard" className="text-[#1F6B47] hover:underline">
             Dashboard
           </Link>
-          <span className="text-[#7C8495]">·</span>
+          <span className="text-[#8d877e]">·</span>
           <Link href="/dashboard/records" className="text-[#1F6B47] hover:underline">
             Manage records
           </Link>
-          <span className="text-[#7C8495]">·</span>
+          <span className="text-[#8d877e]">·</span>
           <Link href="/pricing" className="text-[#1F6B47] hover:underline">
             Public pricing
           </Link>

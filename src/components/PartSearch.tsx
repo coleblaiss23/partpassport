@@ -20,7 +20,7 @@ export default function PartSearch({ compact = false }: { compact?: boolean }) {
  >
  <div className={compact ? "grid gap-3" : "grid gap-3 sm:grid-cols-[1fr_1fr_auto]"}>
  <label className="block">
- <span className="mb-1.5 block text-[10px] uppercase tracking-widest text-[#7C8495]">
+ <span className="mb-1.5 block text-[10px] uppercase tracking-widest text-[#8d877e]">
  Part number
  </span>
  <input
@@ -33,7 +33,7 @@ export default function PartSearch({ compact = false }: { compact?: boolean }) {
  />
  </label>
  <label className="block">
- <span className="mb-1.5 block text-[10px] uppercase tracking-widest text-[#7C8495]">
+ <span className="mb-1.5 block text-[10px] uppercase tracking-widest text-[#8d877e]">
  Serial number
  </span>
  <input

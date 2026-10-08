@@ -59,11 +59,11 @@ export function CustodyBoard({ initial }: { initial: CustodyPart[] }) {
                 <Badge tone={shelf.tone}>{list.length}</Badge>
               </div>
               {list.length === 0 ? (
-                <p className="text-sm text-[#7C8495]">Empty</p>
+                <p className="text-sm text-[#8d877e]">Empty</p>
               ) : (
                 <ul className="space-y-2">
                   {list.map((p) => (
-                    <li key={p.id} className="border border-[#1F2430] bg-[#0B0F14] p-3">
+                    <li key={p.id} className="border border-[#2c2c2c] bg-[#0a0a0a] p-3">
                       <Link
                         href={`/verify/${encodeURIComponent(p.partNumber)}/${encodeURIComponent(p.serialNumber)}`}
                         className="pp-track text-sm text-white hover:underline"
@@ -71,7 +71,7 @@ export function CustodyBoard({ initial }: { initial: CustodyPart[] }) {
                         {p.partNumber} / {p.serialNumber}
                       </Link>
                       {p.description && (
-                        <p className="mt-0.5 text-xs text-[#7C8495]">{p.description}</p>
+                        <p className="mt-0.5 text-xs text-[#8d877e]">{p.description}</p>
                       )}
                       <div className="mt-2 flex flex-wrap gap-1">
                         {SHELVES.filter((s) => s.id !== p.custodyStatus).map((s) => (
@@ -80,7 +80,7 @@ export function CustodyBoard({ initial }: { initial: CustodyPart[] }) {
                             type="button"
                             disabled={pending}
                             onClick={() => setStatus(p.id, s.id)}
-                            className="rounded-[4px] border border-[#222A3B] px-2 py-0.5 text-[10px] text-[#B0B6C3] hover:border-[#B0B6C3] hover:text-white"
+                            className="rounded-[4px] border border-[#3d3d3d] px-2 py-0.5 text-[10px] text-[#c8c2b8] hover:border-[#c8c2b8] hover:text-white"
                           >
                             → {s.label}
                           </button>
@@ -101,6 +101,7 @@ export function CustodyBoard({ initial }: { initial: CustodyPart[] }) {
 export function ComplianceManager({
   initial,
   vendorExpiring,
+  asOf,
 }: {
   initial: {
     id: string;
@@ -111,6 +112,8 @@ export function ComplianceManager({
     notes: string | null;
   }[];
   vendorExpiring: { supplierName: string; certificateNumber: string; expiresAt: string }[];
+  /** Request time from the server so expired / due-soon labels stay stable across renders. */
+  asOf: string;
 }) {
   const [items, setItems] = useState(initial);
   const [pending, start] = useTransition();
@@ -142,7 +145,7 @@ export function ComplianceManager({
     });
   }
 
-  const now = Date.now();
+  const now = new Date(asOf).getTime();
   const soon = now + 30 * 24 * 60 * 60 * 1000;
 
   return (
@@ -172,7 +175,7 @@ export function ComplianceManager({
       <Card className="space-y-4">
         <h2 className="font-medium text-white">Add expiration tracker</h2>
         <form onSubmit={add} className="grid gap-3 sm:grid-cols-2">
-          <label className="text-xs text-[#B0B6C3]">
+          <label className="text-xs text-[#c8c2b8]">
             Category
             <select
               className={`${inputCls} mt-1`}
@@ -184,7 +187,7 @@ export function ComplianceManager({
               <option value="INSPECTION_AUTH">Inspection authorization</option>
             </select>
           </label>
-          <label className="text-xs text-[#B0B6C3]">
+          <label className="text-xs text-[#c8c2b8]">
             Name
             <input
               required
@@ -194,7 +197,7 @@ export function ComplianceManager({
               placeholder="Torque wrench TW-12"
             />
           </label>
-          <label className="text-xs text-[#B0B6C3]">
+          <label className="text-xs text-[#c8c2b8]">
             Reference
             <input
               className={`${inputCls} mt-1`}
@@ -203,7 +206,7 @@ export function ComplianceManager({
               placeholder="Asset # / cert #"
             />
           </label>
-          <label className="text-xs text-[#B0B6C3]">
+          <label className="text-xs text-[#c8c2b8]">
             Expires
             <input
               required
@@ -226,12 +229,12 @@ export function ComplianceManager({
         <h2 className="text-lg font-medium text-white">Upcoming expirations</h2>
         {items.length === 0 ? (
           <Card>
-            <p className="text-sm text-[#B0B6C3]">No trackers yet.</p>
+            <p className="text-sm text-[#c8c2b8]">No trackers yet.</p>
           </Card>
         ) : (
-          <div className="overflow-hidden rounded-[4px] border border-[#1F2430]">
+          <div className="overflow-hidden rounded-[4px] border border-[#2c2c2c]">
             <table className="w-full text-sm">
-              <thead className="bg-[#12151C] text-left text-xs uppercase tracking-wider text-[#7C8495]">
+              <thead className="bg-[#111111] text-left text-xs uppercase tracking-wider text-[#8d877e]">
                 <tr>
                   <th className="px-4 py-3">Item</th>
                   <th className="px-4 py-3">Category</th>
@@ -239,7 +242,7 @@ export function ComplianceManager({
                   <th className="px-4 py-3">State</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#1F2430]">
+              <tbody className="divide-y divide-[#2c2c2c]">
                 {items.map((it) => {
                   const t = new Date(it.expiresAt).getTime();
                   const state =
@@ -247,15 +250,15 @@ export function ComplianceManager({
                   const tone =
                     state === "Expired" ? "red" : state === "Due soon" ? "amber" : "green";
                   return (
-                    <tr key={it.id} className="bg-[#0B0F14]">
+                    <tr key={it.id} className="bg-[#0a0a0a]">
                       <td className="px-4 py-3 text-white">
                         {it.name}
                         {it.reference ? (
-                          <span className="pp-track ml-2 text-xs text-[#7C8495]">{it.reference}</span>
+                          <span className="pp-track ml-2 text-xs text-[#8d877e]">{it.reference}</span>
                         ) : null}
                       </td>
-                      <td className="px-4 py-3 text-[#B0B6C3]">{it.category.replace(/_/g, " ")}</td>
-                      <td className="pp-track px-4 py-3 text-[#B0B6C3]">
+                      <td className="px-4 py-3 text-[#c8c2b8]">{it.category.replace(/_/g, " ")}</td>
+                      <td className="pp-track px-4 py-3 text-[#c8c2b8]">
                         {it.expiresAt.slice(0, 10)}
                       </td>
                       <td className="px-4 py-3">

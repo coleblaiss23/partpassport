@@ -21,6 +21,7 @@ export default async function AuditSharePage() {
         </div>
       )}
       <AuditShareManager
+        asOf={new Date().toISOString()}
         initial={shares.map((s) => ({
           id: s.id,
           label: s.label,

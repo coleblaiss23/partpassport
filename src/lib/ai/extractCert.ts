@@ -7,6 +7,14 @@ import { getAdminDevFlags } from "@/lib/adminFlags";
 export type AiMode = "anthropic" | "local" | "off";
 export class AiNotConfigured extends Error {}
 
+/** Current Sonnet snapshot. Override with ANTHROPIC_MODEL. */
+export const DEFAULT_ANTHROPIC_MODEL = "claude-sonnet-5-5";
+
+function anthropicModel(): string {
+ const configured = (process.env.ANTHROPIC_MODEL ?? "").trim();
+ return configured || DEFAULT_ANTHROPIC_MODEL;
+}
+
 function envFlag(name: string): string {
  return (process.env[name] ?? "").trim().toLowerCase();
 }
@@ -158,9 +166,18 @@ export function normalizeExtracted(raw: Record<string, unknown>): Extracted {
 
 async function callAnthropic(pdfBase64: string): Promise<Extracted> {
  const client = new Anthropic({ timeout: 90_000, maxRetries: 1 });
+ const model = anthropicModel();
+ // Sonnet 5.5 thinks by default and rejects thinking.type "disabled".
+ // between_tools turns off up-front thinking so the certificate JSON stays in a text block.
+ // SDK 0.127 types lag the API: Sonnet 5.5 rejects "disabled" and expects "between_tools".
+ const thinking =
+ model === DEFAULT_ANTHROPIC_MODEL
+ ? ({ type: "between_tools" } as unknown as Anthropic.Messages.ThinkingConfigParam)
+ : undefined;
  const r = await client.messages.create({
- model: process.env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514",
+ model,
  max_tokens: 2500,
+ ...(thinking ? { thinking } : {}),
  messages: [
  {
  role: "user",

@@ -115,7 +115,7 @@ export default function EventForm({ partId }: { partId?: string }) {
  </button>
  </form>
  {ok && (
- <div className="mt-5 flex items-center justify-between gap-3 border-t border-[#1F2430] pt-4">
+ <div className="mt-5 flex items-center justify-between gap-3 border-t border-[#2c2c2c] pt-4">
  <p className="text-sm text-white">Event signed and added to the part&apos;s history.</p>
  <Link href="/dashboard" className={btnSecondary}>
  Back to dashboard

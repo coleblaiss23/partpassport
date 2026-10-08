@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { isAdmin } from "@/lib/auth";
 import { createOrgWithKeys } from "@/lib/orgs";
 import { orgFromRequest, readJson } from "@/lib/api";
-import type { PlanId } from "@/lib/planLimits";
+import { normalizePlanId } from "@/lib/planLimits";
 
 // Admin-only: onboard an organization. Returns API key + private key ONCE.
 export async function POST(request: Request) {
@@ -11,8 +11,10 @@ export async function POST(request: Request) {
  const body = await readJson(request);
  const name = typeof body?.name === "string" ? body.name.trim() : "";
  if (!name || name.length > 120) return NextResponse.json({ error: "name is required" }, { status: 400 });
- const plan = (body?.plan ?? "PILOT") as PlanId;
- if (!["PILOT", "PRO", "ENTERPRISE"].includes(plan)) return NextResponse.json({ error: "plan must be PILOT, PRO or ENTERPRISE" }, { status: 400 });
+ const plan = normalizePlanId((body?.plan as string) ?? "STARTER");
+ if (!["STARTER", "PROFESSIONAL", "ENTERPRISE"].includes(plan)) {
+  return NextResponse.json({ error: "plan must be STARTER, PROFESSIONAL or ENTERPRISE" }, { status: 400 });
+ }
 
  const { org, apiKey, privateKey } = await createOrgWithKeys(name, plan);
  return NextResponse.json(

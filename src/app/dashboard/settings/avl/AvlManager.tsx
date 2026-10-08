@@ -219,7 +219,7 @@ export function AvlManager({ initialVendors }: { initialVendors: Vendor[] }) {
         <h2 className="text-lg font-medium text-white">Add approved repair station</h2>
         <form onSubmit={handleAdd} className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-[#B0B6C3]">Vendor name</label>
+            <label className="text-xs font-medium text-[#c8c2b8]">Vendor name</label>
             <input
               required
               value={supplierName}
@@ -229,7 +229,7 @@ export function AvlManager({ initialVendors }: { initialVendors: Vendor[] }) {
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-[#B0B6C3]">Cert number</label>
+            <label className="text-xs font-medium text-[#c8c2b8]">Cert number</label>
             <input
               required
               value={certificateNumber}
@@ -239,7 +239,7 @@ export function AvlManager({ initialVendors }: { initialVendors: Vendor[] }) {
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-[#B0B6C3]">Expiration date</label>
+            <label className="text-xs font-medium text-[#c8c2b8]">Expiration date</label>
             <input
               type="date"
               value={expiresAt}
@@ -248,7 +248,7 @@ export function AvlManager({ initialVendors }: { initialVendors: Vendor[] }) {
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-[#B0B6C3]">Ratings</label>
+            <label className="text-xs font-medium text-[#c8c2b8]">Ratings</label>
             <input
               value={ratings}
               onChange={(e) => setRatings(e.target.value)}
@@ -257,7 +257,7 @@ export function AvlManager({ initialVendors }: { initialVendors: Vendor[] }) {
             />
           </div>
           <div className="space-y-1.5 sm:col-span-2">
-            <label className="text-xs font-medium text-[#B0B6C3]">Notes (optional)</label>
+            <label className="text-xs font-medium text-[#c8c2b8]">Notes (optional)</label>
             <input
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -279,7 +279,7 @@ export function AvlManager({ initialVendors }: { initialVendors: Vendor[] }) {
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-lg font-medium text-white">Bulk import (CSV / Excel export)</h2>
-            <p className="mt-1 text-sm text-[#B0B6C3]">
+            <p className="mt-1 text-sm text-[#c8c2b8]">
               Map columns: Vendor Name, Cert Number, Expiration Date, Ratings. Save Excel as CSV
               before upload.
             </p>
@@ -292,9 +292,9 @@ export function AvlManager({ initialVendors }: { initialVendors: Vendor[] }) {
             Download template
           </a>
         </div>
-        <label className="flex cursor-pointer flex-col items-center justify-center gap-1 border-2 border-dashed border-[#1F2430] p-6 text-center hover:border-[#B0B6C3]">
+        <label className="flex cursor-pointer flex-col items-center justify-center gap-1 border-2 border-dashed border-[#2c2c2c] p-6 text-center hover:border-[#c8c2b8]">
           <span className="text-sm font-medium text-white">Drop CSV or click to browse</span>
-          <span className="text-xs text-[#7C8495]">.csv from Excel / Google Sheets</span>
+          <span className="text-xs text-[#8d877e]">.csv from Excel / Google Sheets</span>
           <input
             type="file"
             accept=".csv,text/csv"
@@ -308,13 +308,13 @@ export function AvlManager({ initialVendors }: { initialVendors: Vendor[] }) {
         </label>
         {importPreview && (
           <div className="space-y-3">
-            <p className="text-sm text-[#B0B6C3]">
+            <p className="text-sm text-[#c8c2b8]">
               Preview: <span className="text-white">{importPreview.length}</span> vendors ready to
               import
             </p>
-            <div className="max-h-48 overflow-auto border border-[#1F2430]">
+            <div className="max-h-48 overflow-auto border border-[#2c2c2c]">
               <table className="w-full text-left text-xs">
-                <thead className="sticky top-0 bg-[#12151C] text-[#7C8495]">
+                <thead className="sticky top-0 bg-[#111111] text-[#8d877e]">
                   <tr>
                     <th className="px-3 py-2">Vendor</th>
                     <th className="px-3 py-2">Cert</th>
@@ -324,11 +324,11 @@ export function AvlManager({ initialVendors }: { initialVendors: Vendor[] }) {
                 </thead>
                 <tbody>
                   {importPreview.slice(0, 50).map((r, i) => (
-                    <tr key={`${r.certificateNumber}-${i}`} className="border-t border-[#1F2430]">
+                    <tr key={`${r.certificateNumber}-${i}`} className="border-t border-[#2c2c2c]">
                       <td className="px-3 py-1.5 text-white">{r.supplierName}</td>
-                      <td className="pp-track px-3 py-1.5 text-[#B0B6C3]">{r.certificateNumber}</td>
-                      <td className="px-3 py-1.5 text-[#B0B6C3]">{r.expiresAt ?? "—"}</td>
-                      <td className="px-3 py-1.5 text-[#B0B6C3]">{r.ratings ?? "—"}</td>
+                      <td className="pp-track px-3 py-1.5 text-[#c8c2b8]">{r.certificateNumber}</td>
+                      <td className="px-3 py-1.5 text-[#c8c2b8]">{r.expiresAt ?? "—"}</td>
+                      <td className="px-3 py-1.5 text-[#c8c2b8]">{r.ratings ?? "—"}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -353,18 +353,18 @@ export function AvlManager({ initialVendors }: { initialVendors: Vendor[] }) {
 
       <section className="space-y-3">
         <h2 className="text-lg font-medium text-white">
-          Active vendors <span className="text-[#7C8495]">({active.length})</span>
+          Active vendors <span className="text-[#8d877e]">({active.length})</span>
         </h2>
         {active.length === 0 ? (
           <Card>
-            <p className="text-sm text-[#B0B6C3]">
+            <p className="text-sm text-[#c8c2b8]">
               No active vendors yet. Add or bulk-import approved repair stations above.
             </p>
           </Card>
         ) : (
-          <div className="overflow-hidden rounded-[4px] border border-[#1F2430]">
+          <div className="overflow-hidden rounded-[4px] border border-[#2c2c2c]">
             <table className="w-full text-sm">
-              <thead className="bg-[#12151C] text-left text-xs uppercase tracking-wider text-[#7C8495]">
+              <thead className="bg-[#111111] text-left text-xs uppercase tracking-wider text-[#8d877e]">
                 <tr>
                   <th className="px-4 py-3">Vendor</th>
                   <th className="px-4 py-3">Cert #</th>
@@ -373,20 +373,20 @@ export function AvlManager({ initialVendors }: { initialVendors: Vendor[] }) {
                   <th className="px-4 py-3"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[#1F2430]">
+              <tbody className="divide-y divide-[#2c2c2c]">
                 {active.map((v) => (
-                  <tr key={v.id} className="bg-[#0B0F14]">
+                  <tr key={v.id} className="bg-[#0a0a0a]">
                     <td className="px-4 py-3 font-medium text-white">{v.supplierName}</td>
-                    <td className="pp-track px-4 py-3 text-[#B0B6C3]">{v.certificateNumber}</td>
+                    <td className="pp-track px-4 py-3 text-[#c8c2b8]">{v.certificateNumber}</td>
                     <td
                       className={`px-4 py-3 ${
-                        expired(v.expiresAt) ? "text-[#FFE4E6]" : "text-[#B0B6C3]"
+                        expired(v.expiresAt) ? "text-[#FFE4E6]" : "text-[#c8c2b8]"
                       }`}
                     >
                       {fmtDate(v.expiresAt)}
                       {expired(v.expiresAt) ? " · expired" : ""}
                     </td>
-                    <td className="px-4 py-3 text-[#B0B6C3]">{v.ratings || "—"}</td>
+                    <td className="px-4 py-3 text-[#c8c2b8]">{v.ratings || "—"}</td>
                     <td className="px-4 py-3 text-right">
                       <button
                         type="button"
@@ -407,17 +407,17 @@ export function AvlManager({ initialVendors }: { initialVendors: Vendor[] }) {
 
       {inactive.length > 0 && (
         <section className="space-y-3">
-          <h2 className="text-lg font-medium text-[#B0B6C3]">
-            Inactive <span className="text-[#7C8495]">({inactive.length})</span>
+          <h2 className="text-lg font-medium text-[#c8c2b8]">
+            Inactive <span className="text-[#8d877e]">({inactive.length})</span>
           </h2>
-          <div className="overflow-hidden rounded-[4px] border border-[#1F2430]">
+          <div className="overflow-hidden rounded-[4px] border border-[#2c2c2c]">
             <table className="w-full text-sm opacity-60">
-              <tbody className="divide-y divide-[#1F2430]">
+              <tbody className="divide-y divide-[#2c2c2c]">
                 {inactive.map((v) => (
                   <tr key={v.id}>
-                    <td className="px-4 py-2.5 text-[#B0B6C3]">{v.supplierName}</td>
-                    <td className="pp-track px-4 py-2.5 text-[#7C8495]">{v.certificateNumber}</td>
-                    <td className="px-4 py-2.5 text-[#7C8495]">Inactive</td>
+                    <td className="px-4 py-2.5 text-[#c8c2b8]">{v.supplierName}</td>
+                    <td className="pp-track px-4 py-2.5 text-[#8d877e]">{v.certificateNumber}</td>
+                    <td className="px-4 py-2.5 text-[#8d877e]">Inactive</td>
                   </tr>
                 ))}
               </tbody>

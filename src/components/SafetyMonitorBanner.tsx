@@ -18,7 +18,7 @@ export function SafetyMonitorBanner({ alerts }: { alerts: SafetyAlertRow[] }) {
       <Card className="flex flex-wrap items-center justify-between gap-3 border-[#1F6B47] bg-[#14281F]">
         <div>
           <p className="text-sm font-medium text-white">UPN / AD monitoring</p>
-          <p className="mt-0.5 text-xs text-[#B0B6C3]">
+          <p className="mt-0.5 text-xs text-[#c8c2b8]">
             No open Unapproved Parts Notifications or Airworthiness Directives match parts in your
             custody.
           </p>
@@ -49,7 +49,7 @@ export function SafetyMonitorBanner({ alerts }: { alerts: SafetyAlertRow[] }) {
                 <span className="pp-track font-medium">
                   {a.source} {a.referenceId}
                 </span>
-                <span className="text-[#B0B6C3]">
+                <span className="text-[#c8c2b8]">
                   {" "}
                   · {a.partNumber} — {a.description}
                 </span>

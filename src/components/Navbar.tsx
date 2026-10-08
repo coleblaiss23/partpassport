@@ -5,10 +5,12 @@ import { useEffect, useRef, useState } from "react";
 import Logo from "./Logo";
 import { useVault } from "./VaultProvider";
 import { btnPrimary } from "./ui";
+import { GlobalSearch } from "./search/GlobalSearch";
 
-/** Signed-in primary nav (exact order): Dashboard | Intake | AVL | Registry | Tools | Sample Report */
+/** Signed-in primary nav: Dashboard | Fleet | Intake | AVL | Registry | Tools */
 const PRIMARY_AUTH = [
   { href: "/dashboard", label: "Dashboard" },
+  { href: "/dashboard/fleet", label: "Fleet" },
   { href: "/dashboard/check", label: "Intake" },
   { href: "/dashboard/settings/avl", label: "AVL" },
   { href: "/", label: "Registry" },
@@ -20,6 +22,7 @@ const PRIMARY_PUBLIC = [
 
 const TOOLS = [
   { href: "/tutorials", label: "Tutorials" },
+  { href: "/dashboard/uploads", label: "Logbook uploads", auth: true },
   { href: "/dashboard/parts/new", label: "Register part", auth: true },
   { href: "/dashboard/events/new", label: "Events", auth: true },
   { href: "/dashboard/import", label: "Import", auth: true },
@@ -39,6 +42,7 @@ const ACCOUNT_LINKS = [
 function linkActive(path: string, href: string) {
   if (href === "/") return path === "/" || path.startsWith("/verify") || path.startsWith("/sample-part");
   if (href === "/dashboard") return path === "/dashboard";
+  if (href === "/dashboard/fleet") return path === "/dashboard/fleet" || path.startsWith("/dashboard/fleet/");
   return path === href || path.startsWith(href + "/");
 }
 
@@ -60,8 +64,10 @@ function NavLink({
     <Link
       href={href}
       onClick={onClick}
-      className={`${block ? "block " : ""}rounded-[4px] px-3 py-2 text-sm ${
-        active ? "bg-[#161B24] text-white" : "text-[#B0B6C3] hover:text-white"
+      className={`${block ? "block px-3 py-2.5 " : "px-3 py-2 "}text-[13px] tracking-wide transition-colors ${
+        active
+          ? "text-[#f4f1ea] shadow-[inset_0_-1px_0_0_#c4893a]"
+          : "text-[#c8c2b8] hover:text-[#f4f1ea]"
       }`}
     >
       {label}
@@ -107,23 +113,23 @@ export default function Navbar() {
         aria-expanded={acctOpen}
         aria-haspopup="menu"
         onClick={() => setAcctOpen((o) => !o)}
-        className="flex items-center gap-2 rounded-[4px] px-2 py-1.5 text-sm text-[#B0B6C3] hover:text-white"
+        className="flex items-center gap-2 px-2 py-1.5 text-sm text-[#c8c2b8] transition-colors hover:text-[#f4f1ea]"
       >
         <span
-          className={`h-2 w-2 rounded-[2px] ${v.unlocked ? "bg-[#1F6B47]" : "bg-[#B45309]"}`}
+          className={`h-1.5 w-1.5 ${v.unlocked ? "bg-[#1F6B47]" : "bg-[#c4893a]"}`}
           aria-hidden
         />
-        <span className="max-w-[9rem] truncate text-white">{v.org!.name}</span>
-        <span className="text-[#7C8495]" aria-hidden>
+        <span className="max-w-[9rem] truncate text-[#f4f1ea]">{v.org!.name}</span>
+        <span className="text-[#8d877e]" aria-hidden>
           ▾
         </span>
       </button>
       {acctOpen && (
         <div
           role="menu"
-          className="absolute right-0 top-full z-50 mt-1 min-w-[12rem] border border-[#1F2430] bg-[#0B0F14] py-1"
+          className="absolute right-0 top-full z-50 mt-2 min-w-[12rem] border border-[#3d3d3d] bg-[#111111]/95 py-1 backdrop-blur-xl"
         >
-          <p className="px-4 py-1.5 text-[10px] uppercase tracking-wider text-[#7C8495]">
+          <p className="px-4 py-1.5 text-[10px] uppercase tracking-[0.18em] text-[#8d877e]">
             {v.unlocked ? "Vault unlocked" : "Vault locked"}
           </p>
           {ACCOUNT_LINKS.map((l) => (
@@ -134,8 +140,8 @@ export default function Navbar() {
               onClick={() => setAcctOpen(false)}
               className={`block px-4 py-2 text-sm ${
                 linkActive(path, l.href)
-                  ? "bg-[#161B24] text-white"
-                  : "text-[#B0B6C3] hover:bg-[#12151C] hover:text-white"
+                  ? "text-[#f4f1ea]"
+                  : "text-[#c8c2b8] hover:bg-[#171717] hover:text-[#f4f1ea]"
               }`}
             >
               {l.label}
@@ -149,7 +155,7 @@ export default function Navbar() {
                 v.lock();
                 setAcctOpen(false);
               }}
-              className="block w-full px-4 py-2 text-left text-sm text-[#B0B6C3] hover:bg-[#12151C] hover:text-white"
+              className="block w-full px-4 py-2 text-left text-sm text-[#c8c2b8] hover:bg-[#171717] hover:text-[#f4f1ea]"
             >
               Lock vault
             </button>
@@ -163,7 +169,7 @@ export default function Navbar() {
               router.push("/");
               router.refresh();
             }}
-            className="block w-full border-t border-[#1F2430] px-4 py-2 text-left text-sm text-[#B0B6C3] hover:bg-[#12151C] hover:text-white"
+            className="block w-full border-t border-[#2c2c2c] px-4 py-2 text-left text-sm text-[#c8c2b8] hover:bg-[#171717] hover:text-[#f4f1ea]"
           >
             Sign out
           </button>
@@ -172,10 +178,10 @@ export default function Navbar() {
     </div>
   ) : (
     <div className="flex items-center gap-2">
-      <Link href="/pricing" className="px-3 py-2 text-sm text-[#B0B6C3] hover:text-white">
+      <Link href="/pricing" className="px-3 py-2 text-[13px] tracking-wide text-[#c8c2b8] transition-colors hover:text-[#f4f1ea]">
         Pricing
       </Link>
-      <Link href="/connect" className="px-3 py-2 text-sm text-[#B0B6C3] hover:text-white">
+      <Link href="/connect" className="px-3 py-2 text-[13px] tracking-wide text-[#c8c2b8] transition-colors hover:text-[#f4f1ea]">
         Sign in
       </Link>
       <Link href="/request-access" className={btnPrimary}>
@@ -191,21 +197,21 @@ export default function Navbar() {
         aria-expanded={toolsOpen}
         aria-haspopup="menu"
         onClick={() => setToolsOpen((o) => !o)}
-        className={`rounded-[4px] px-3 py-2 text-sm ${
+        className={`px-3 py-2 text-[13px] tracking-wide transition-colors ${
           toolsActive || toolsOpen
-            ? "bg-[#161B24] text-white"
-            : "text-[#B0B6C3] hover:text-white"
+            ? "text-[#f4f1ea] shadow-[inset_0_-1px_0_0_#c4893a]"
+            : "text-[#c8c2b8] hover:text-[#f4f1ea]"
         }`}
       >
         Tools
-        <span className="ml-1 text-[#7C8495]" aria-hidden>
+        <span className="ml-1 text-[#8d877e]" aria-hidden>
           ▾
         </span>
       </button>
       {toolsOpen && (
         <div
           role="menu"
-          className="absolute left-0 top-full z-50 mt-1 min-w-[14rem] border border-[#1F2430] bg-[#0B0F14] py-1"
+          className="absolute left-0 top-full z-50 mt-2 min-w-[14rem] border border-[#3d3d3d] bg-[#111111]/95 py-1 backdrop-blur-xl"
         >
           {tools.map((l) => (
             <Link
@@ -215,8 +221,8 @@ export default function Navbar() {
               onClick={() => setToolsOpen(false)}
               className={`block px-4 py-2 text-sm ${
                 linkActive(path, l.href)
-                  ? "bg-[#161B24] text-white"
-                  : "text-[#B0B6C3] hover:bg-[#12151C] hover:text-white"
+                  ? "text-[#f4f1ea]"
+                  : "text-[#c8c2b8] hover:bg-[#171717] hover:text-[#f4f1ea]"
               }`}
             >
               {l.label}
@@ -228,36 +234,46 @@ export default function Navbar() {
   );
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#1F2430] bg-[#0B0F14]">
-      <nav className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-4 px-4" aria-label="Main">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-[#0a0a0a]/55 backdrop-blur-xl">
+      <nav className="flex h-16 items-center justify-between gap-4 px-4 md:px-8" aria-label="Main">
         <Link href="/" aria-label="PartPassport home" className="shrink-0">
           <Logo />
         </Link>
 
-        <div className="hidden flex-1 items-center gap-1 lg:flex">
+        <div className="hidden flex-1 items-center gap-1 md:flex">
           {primary.map((l) => (
             <NavLink key={l.href + l.label} href={l.href} label={l.label} path={path} />
           ))}
-          {toolsDropdown}
-          <NavLink href="/sample-report" label="Sample report" path={path} />
+          {signedIn && toolsDropdown}
+          {signedIn && <NavLink href="/sample-report" label="Sample report" path={path} />}
+          {signedIn && (
+            <div className="ml-2 min-w-[10rem] max-w-sm flex-1 px-1">
+              <GlobalSearch compact />
+            </div>
+          )}
         </div>
 
-        <div className="hidden lg:block">{accountMenu}</div>
+        <div className="hidden md:block">{accountMenu}</div>
 
         <button
           type="button"
           aria-expanded={mobileOpen}
           aria-label="Toggle menu"
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="rounded-[4px] border border-[#222A3B] px-3 py-1.5 text-sm text-[#B0B6C3] lg:hidden"
+          className="border border-[#3d3d3d] px-3 py-1.5 text-[11px] uppercase tracking-[0.16em] text-[#c8c2b8] md:hidden"
         >
           {mobileOpen ? "Close" : "Menu"}
         </button>
       </nav>
 
       {mobileOpen && (
-        <div className="max-h-[80vh] space-y-1 overflow-y-auto border-t border-[#1F2430] bg-[#0B0F14] px-4 py-3 lg:hidden">
-          <p className="px-3 pt-1 text-[10px] uppercase tracking-wider text-[#7C8495]">Navigate</p>
+        <div className="max-h-[80vh] space-y-1 overflow-y-auto border-t border-white/10 bg-[#0a0a0a]/90 px-4 py-3 backdrop-blur-xl md:hidden">
+          {signedIn && (
+            <div className="mb-3 px-1">
+              <GlobalSearch />
+            </div>
+          )}
+          <p className="px-3 pt-1 text-[10px] uppercase tracking-[0.18em] text-[#8d877e]">Navigate</p>
           {primary.map((l) => (
             <NavLink
               key={l.href + l.label}
@@ -275,7 +291,7 @@ export default function Navbar() {
             onClick={() => setMobileOpen(false)}
             block
           />
-          <p className="px-3 pt-3 text-[10px] uppercase tracking-wider text-[#7C8495]">Tools</p>
+          <p className="px-3 pt-3 text-[10px] uppercase tracking-[0.18em] text-[#8d877e]">Tools</p>
           {tools.map((l) => (
             <NavLink
               key={l.href}
@@ -288,7 +304,7 @@ export default function Navbar() {
           ))}
           {signedIn && (
             <>
-              <p className="px-3 pt-3 text-[10px] uppercase tracking-wider text-[#7C8495]">Account</p>
+              <p className="px-3 pt-3 text-[10px] uppercase tracking-[0.18em] text-[#8d877e]">Account</p>
               {ACCOUNT_LINKS.map((l) => (
                 <NavLink
                   key={l.href}

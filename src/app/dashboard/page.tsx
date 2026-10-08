@@ -36,13 +36,13 @@ function Meter({ label, used, limit }: { label: string; used: number; limit: num
   return (
     <div>
       <div className="flex justify-between text-sm">
-        <span className="text-[#B0B6C3]">{label}</span>
-        <span className="text-[#B0B6C3]">
+        <span className="text-[#c8c2b8]">{label}</span>
+        <span className="text-[#c8c2b8]">
           {used} / {big ? "fair use" : limit}
         </span>
       </div>
       {!big && (
-        <div className="mt-1 h-2 overflow-hidden rounded-[4px] bg-[#161B24]">
+        <div className="mt-1 h-2 overflow-hidden rounded-[4px] bg-[#171717]">
           <div className={`h-full ${color}`} style={{ width: `${pct}%` }} />
         </div>
       )}
@@ -66,7 +66,7 @@ export default async function DashboardPage() {
   const plan = effectivePlan(org);
   const limits = PLAN_LIMITS[plan];
 
-  const [held, checks, usage, flagged, events, attention, llp, heldParts, safetyAll, expiring, quarantine] =
+  const [held, checks, usage, flagged, events, attention, llp, heldParts, safetyAll, expiring, quarantine, fleetCount] =
     await Promise.all([
       prisma.part.count({ where: { currentOrgId: org.id, scrapped: false } }),
       prisma.certificateCheck.count({ where: mine }),
@@ -91,6 +91,7 @@ export default async function DashboardPage() {
       prisma.safetyFlag.findMany({ orderBy: { issuedDate: "desc" }, take: 300 }),
       safeComplianceDueCount(org.id),
       safeQuarantineCount(org.id),
+      prisma.aircraft.count({ where: { organizationId: org.id } }),
     ]);
 
   const heldNorm = new Set(heldParts.map((p) => normPN(p.partNumber)));
@@ -114,11 +115,14 @@ export default async function DashboardPage() {
         subtitle="Organization overview"
         actions={
           <div className="flex flex-wrap gap-2">
-            <Link href="/dashboard/check" className={btnPrimary}>
+            <Link href="/dashboard/fleet" className={btnPrimary}>
+              Fleet
+            </Link>
+            <Link href="/dashboard/check" className={btnSecondary}>
               Certificate intake
             </Link>
-            <Link href="/dashboard/custody" className={btnSecondary}>
-              Custody
+            <Link href="/dashboard/uploads" className={btnSecondary}>
+              Uploads
             </Link>
           </div>
         }
@@ -126,7 +130,10 @@ export default async function DashboardPage() {
 
       <SafetyMonitorBanner alerts={safetyAlerts} />
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+        <Link href="/dashboard/fleet" className="block">
+          <Stat label="Aircraft in fleet" value={fleetCount} sub="Open Tail Number Hub" />
+        </Link>
         <Stat label="Parts in your custody" value={held} />
         <Stat
           label="In quarantine"
@@ -149,12 +156,12 @@ export default async function DashboardPage() {
         <Card className="overflow-x-auto lg:col-span-2">
           <h2 className="mb-3 font-medium text-white">Recent activity</h2>
           {events.length === 0 ? (
-            <p className="text-sm text-[#B0B6C3]">
+            <p className="text-sm text-[#c8c2b8]">
               No events yet. Register a part to create your first signed record.
             </p>
           ) : (
             <table className="w-full text-left text-sm">
-              <thead className="text-xs text-[#7C8495]">
+              <thead className="text-xs text-[#8d877e]">
                 <tr>
                   <th className="pb-2 font-medium">Time (UTC)</th>
                   <th className="pb-2 font-medium">Event</th>
@@ -164,8 +171,8 @@ export default async function DashboardPage() {
               </thead>
               <tbody>
                 {events.map((e) => (
-                  <tr key={e.id} className="border-t border-[#1F2430]">
-                    <td className="py-2 pr-3 text-[#B0B6C3]">
+                  <tr key={e.id} className="border-t border-[#2c2c2c]">
+                    <td className="py-2 pr-3 text-[#c8c2b8]">
                       {e.createdAt.toISOString().slice(0, 16).replace("T", " ")}
                     </td>
                     <td className="py-2 pr-3">
@@ -193,7 +200,7 @@ export default async function DashboardPage() {
           <Card>
             <h2 className="mb-2 font-medium text-white">Needs attention</h2>
             {attention.length === 0 ? (
-              <p className="text-sm text-[#B0B6C3]">No certificate findings to review.</p>
+              <p className="text-sm text-[#c8c2b8]">No certificate findings to review.</p>
             ) : (
               <ul className="space-y-2 text-sm">
                 {attention.map((c) => (
@@ -222,7 +229,7 @@ export default async function DashboardPage() {
           <Card className="space-y-3">
             <div className="flex items-center justify-between">
               <h2 className="font-medium text-white">Plan and usage</h2>
-              <Badge tone={plan === "PILOT" ? "slate" : "green"}>{limits.name}</Badge>
+              <Badge tone={plan === "STARTER" ? "slate" : "green"}>{limits.name}</Badge>
             </div>
             <Meter label="Certificate checks" used={usage.checks} limit={limits.checks} />
             <Meter
@@ -230,8 +237,8 @@ export default async function DashboardPage() {
               used={usage.registrations}
               limit={limits.registrations}
             />
-            <p className="text-xs text-[#7C8495]">Resets on the 1st of each month (UTC).</p>
-            {plan === "PILOT" ? (
+            <p className="text-xs text-[#8d877e]">Resets on the 1st of each month (UTC).</p>
+            {plan === "STARTER" ? (
               <Link href="/billing" className={`${btnPrimary} w-full`}>
                 Upgrade plan
               </Link>

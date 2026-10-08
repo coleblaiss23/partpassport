@@ -40,17 +40,18 @@ export default async function PricingPage() {
     ],
     [
       "How does billing work?",
-      "Select a plan, review the payment summary, then continue to Stripe (or local mock in development).",
+      "Select a plan, review the payment summary, then continue to Stripe (or local mock in development). New orgs get a 14-day trial window.",
     ],
   ];
 
   return (
-    <main className="mx-auto max-w-5xl space-y-10 px-4 py-12">
-      <div className="max-w-xl space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight text-white">Pricing</h1>
-        <p className="text-sm text-[#B0B6C3]">
-          Deterministic OCR Pipeline, AVL enforcement, and Chain of Custody Ledger for shops that
-          handle 8130-3 / Form 1 paperwork. Not an airworthiness determination.
+    <main className="mx-auto max-w-6xl space-y-16 px-6 py-16 md:px-12">
+      <div className="max-w-2xl">
+        <p className="pp-track text-[11px] uppercase tracking-[0.32em] text-[#c4893a]">Plans</p>
+        <h1 className="mt-4 text-5xl text-[#f4f1ea] md:text-7xl">Pricing</h1>
+        <p className="mt-5 text-base leading-relaxed text-[#c8c2b8]">
+          Fleet compliance, AD tracking, and shop invoicing for Part 135 operators, flight schools,
+          and MRO shops — from ${L.STARTER.priceMonthly} to ${L.ENTERPRISE.priceMonthly}/month.
         </p>
       </div>
 
@@ -63,8 +64,8 @@ export default async function PricingPage() {
 
       {!org && (
         <div className="flex flex-wrap gap-2">
-          <Cta href="/signup?plan=pilot" primary>
-            Start free Pilot
+          <Cta href="/signup?plan=starter" primary>
+            Start Starter trial
           </Cta>
           <Cta href="/request-access?plan=enterprise">Talk to sales</Cta>
         </div>
@@ -72,10 +73,10 @@ export default async function PricingPage() {
 
       <Card>
         <h2 className="text-sm font-semibold text-white">Fair use</h2>
-        <p className="mt-2 text-sm text-[#B0B6C3]">
-          MRO Professional includes {L.PRO.checks} certificate checks per month. Part registrations
-          are unlimited within reasonable use (up to {L.PRO.registrations.toLocaleString()} per
-          month). Higher sustained volume is an Enterprise conversation.
+        <p className="mt-2 text-sm text-[#c8c2b8]">
+          Professional includes {L.PROFESSIONAL.checks.toLocaleString()} certificate checks per
+          month and unlimited tails. Starter caps fleet size at {L.STARTER.aircraft} aircraft.
+          Enterprise adds multi-shop, work orders, Stripe invoicing, and webhooks.
         </p>
       </Card>
 
@@ -83,7 +84,7 @@ export default async function PricingPage() {
         {faq.map(([q, a]) => (
           <Card key={q}>
             <h3 className="text-sm font-medium text-white">{q}</h3>
-            <p className="mt-1 text-sm text-[#B0B6C3]">{a}</p>
+            <p className="mt-1 text-sm text-[#c8c2b8]">{a}</p>
           </Card>
         ))}
       </div>

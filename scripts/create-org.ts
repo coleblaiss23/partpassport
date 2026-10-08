@@ -1,12 +1,14 @@
-// Usage: npm run org:create -- "Org Name" [PILOT|PRO|ENTERPRISE]
+// Usage: npm run org:create -- "Org Name" [STARTER|PROFESSIONAL|ENTERPRISE]
 import { PrismaClient } from "@prisma/client";
 import { createOrgWithKeys } from "../src/lib/orgs";
-import type { PlanId } from "../src/lib/planLimits";
+import { normalizePlanId, type PlanId } from "../src/lib/planLimits";
 
 const prisma = new PrismaClient();
-const [name, plan = "PILOT"] = process.argv.slice(2);
-if (!name || !["PILOT", "PRO", "ENTERPRISE"].includes(plan)) {
-  console.error('Usage: npm run org:create -- "Org Name" [PILOT|PRO|ENTERPRISE]');
+const [name, planRaw = "STARTER"] = process.argv.slice(2);
+const plan = normalizePlanId(planRaw);
+const allowed = ["STARTER", "PROFESSIONAL", "ENTERPRISE", "PILOT", "PRO"];
+if (!name || !allowed.includes(planRaw.toUpperCase())) {
+  console.error('Usage: npm run org:create -- "Org Name" [STARTER|PROFESSIONAL|ENTERPRISE]');
   process.exit(1);
 }
 

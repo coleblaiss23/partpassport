@@ -29,7 +29,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ partNum
  <main className="mx-auto max-w-3xl space-y-4 px-4 py-10">
  <Card>
  <h1 className="text-xl font-semibold text-white">No record found</h1>
- <p className="mt-2 text-sm text-[#B0B6C3]"><span className="font-mono">{pn} / {sn}</span> has no passport in the registry. That doesn&apos;t mean the part is bad. It means no organization has registered it here.</p>
+ <p className="mt-2 text-sm text-[#c8c2b8]"><span className="font-mono">{pn} / {sn}</span> has no passport in the registry. That doesn&apos;t mean the part is bad. It means no organization has registered it here.</p>
  </Card>
  <Link href="/" className={btnSecondary}>Search again</Link>
  </main>
@@ -69,7 +69,7 @@ export default async function VerifyPage({ params }: { params: Promise<{ partNum
  ) : (
  <Card>
  <h1 className="text-xl font-semibold text-white">Unverified Passport Registry Status</h1>
- <p className="mt-2 text-sm text-[#B0B6C3]">Although safety flags exist for this part number, no specific asset passport has been committed for serial number <span className="font-mono">{sn}</span>.</p>
+ <p className="mt-2 text-sm text-[#c8c2b8]">Although safety flags exist for this part number, no specific asset passport has been committed for serial number <span className="font-mono">{sn}</span>.</p>
  </Card>
  )}
  </main>

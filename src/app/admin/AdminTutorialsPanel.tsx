@@ -40,7 +40,17 @@ export function AdminTutorialsPanel() {
   }, []);
 
   useEffect(() => {
-    load().catch((e) => setErr((e as Error).message));
+    let cancelled = false;
+    (async () => {
+      try {
+        await load();
+      } catch (e) {
+        if (!cancelled) setErr((e as Error).message);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [load]);
 
   async function save(e: React.FormEvent) {
@@ -119,7 +129,7 @@ export function AdminTutorialsPanel() {
             Open public Tutorials →
           </a>
         </div>
-        <p className="text-sm text-[#B0B6C3]">
+        <p className="text-sm text-[#c8c2b8]">
           Embed YouTube, Vimeo, or a direct MP4 URL. Seed cards for AVL bulk import, 8130-3 intake,
           and audit sharing ship empty — paste your walkthrough links here.
         </p>
@@ -211,12 +221,12 @@ export function AdminTutorialsPanel() {
 
       <Card className="space-y-3">
         <h2 className="font-medium text-white">
-          Library <span className="text-[#7C8495]">({videos.length})</span>
+          Library <span className="text-[#8d877e]">({videos.length})</span>
         </h2>
         {videos.length === 0 ? (
-          <p className="text-sm text-[#B0B6C3]">No videos yet.</p>
+          <p className="text-sm text-[#c8c2b8]">No videos yet.</p>
         ) : (
-          <ul className="divide-y divide-[#1F2430]">
+          <ul className="divide-y divide-[#2c2c2c]">
             {videos.map((v) => (
               <li key={v.id} className="flex flex-wrap items-start justify-between gap-3 py-3">
                 <div className="min-w-0 flex-1 space-y-1">
@@ -228,9 +238,9 @@ export function AdminTutorialsPanel() {
                     </Badge>
                   </div>
                   {v.description && (
-                    <p className="text-sm text-[#B0B6C3]">{v.description}</p>
+                    <p className="text-sm text-[#c8c2b8]">{v.description}</p>
                   )}
-                  <p className="pp-track truncate text-xs text-[#7C8495]">
+                  <p className="pp-track truncate text-xs text-[#8d877e]">
                     {v.embedUrl || "(no embed URL)"}
                   </p>
                 </div>

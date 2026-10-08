@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { btnPrimary, btnSecondary, inputCls } from "@/components/ui";
 import type { PlanId } from "@/lib/planLimits";
-import { DEFAULT_LIMITS as L } from "@/lib/planLimits";
+import { normalizePlanId } from "@/lib/planLimits";
 
 type Tier = {
   id: PlanId;
@@ -15,7 +15,7 @@ type Tier = {
   note: string;
   features: string[];
   highlight?: boolean;
-  cta: "current" | "checkout" | "contact" | "dashboard";
+  cta: "current" | "checkout" | "contact";
 };
 
 export function PricingMatrix({
@@ -32,6 +32,7 @@ export function PricingMatrix({
   mode?: "billing" | "public";
 }) {
   const router = useRouter();
+  const current = normalizePlanId(currentPlan);
   const [selected, setSelected] = useState<PlanId | null>(null);
   const [companyName, setCompanyName] = useState("");
   const [needsName, setNeedsName] = useState(false);
@@ -41,47 +42,50 @@ export function PricingMatrix({
 
   const tiers: Tier[] = [
     {
-      id: "PILOT",
-      name: "Pilot",
-      price: "Free",
-      note: "For trying your own certificates",
+      id: "STARTER",
+      name: "Starter",
+      price: "$299",
+      per: "/month",
+      note: "Part 135 operators & flight schools getting started",
       features: [
-        `${L.PILOT.checks} certificate checks / month`,
-        `${L.PILOT.registrations} part registrations / month`,
-        "Shareable audit reports",
-        "Public verification pages",
+        "Up to 5 aircraft tails",
+        "Automated AD alerts",
+        "Safety flag lookups",
+        "Basic fleet tracking",
+        "14-day trial available",
       ],
-      cta: currentPlan === "PILOT" ? "current" : orgId ? "dashboard" : "checkout",
+      cta: current === "STARTER" ? "current" : "checkout",
     },
     {
-      id: "PRO",
-      name: "MRO Professional",
-      price: "$499",
+      id: "PROFESSIONAL",
+      name: "Professional",
+      price: "$599",
       per: "/month",
-      note: "Repair stations, traders, distributors",
+      note: "Unlimited fleet + OCR & compliance reports",
       features: [
-        `${L.PRO.checks} certificate checks / month`,
-        "Unlimited registrations (fair use)",
-        "AVL enforcement + bulk vendor import",
-        "LLP tracking & custody workflows",
-        "UPN / AD monitoring alerts",
-        "Encrypted auditor share links",
+        "Unlimited tail numbers",
+        "Full-text AD applicability parsing",
+        "Logbook / invoice OCR scanning",
+        "Compliance audit reports",
+        "Work order support",
       ],
       highlight: true,
-      cta: currentPlan === "PRO" ? "current" : "checkout",
+      cta: current === "PROFESSIONAL" ? "current" : "checkout",
     },
     {
       id: "ENTERPRISE",
-      name: "Enterprise Fleet",
-      price: "Custom",
-      note: "Typically from $1,999/month",
+      name: "Enterprise / MRO Shop",
+      price: "$899",
+      per: "/month",
+      note: "Multi-shop operations & Stripe invoicing",
       features: [
-        "Higher check volume (fair use)",
-        "API keys for integrations",
-        "SLA and SSO on request",
-        "Onboarding support",
+        "Multi-shop management",
+        "Mechanic certificate tracking",
+        "Custom work orders",
+        "Stripe invoicing",
+        "API webhooks",
       ],
-      cta: currentPlan === "ENTERPRISE" ? "current" : "contact",
+      cta: current === "ENTERPRISE" ? "current" : "checkout",
     },
   ];
 
@@ -111,23 +115,10 @@ export function PricingMatrix({
   }
 
   async function startCheckout(plan: PlanId) {
-    if (plan === "ENTERPRISE") {
-      router.push("/request-access?plan=enterprise");
-      return;
-    }
-    if (plan === "PILOT" && !orgId) {
-      router.push("/signup?plan=pilot");
-      return;
-    }
-    if (plan === "PILOT" && orgId) {
-      router.push("/dashboard");
-      return;
-    }
-
     setBusy(true);
     setErr("");
     try {
-      const body: { plan: string; companyName?: string } = { plan: "PRO" };
+      const body: { plan: string; companyName?: string } = { plan };
       if (companyName.trim()) body.companyName = companyName.trim();
 
       const r = await fetch("/api/billing/checkout", {
@@ -166,9 +157,9 @@ export function PricingMatrix({
 
   return (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid border border-[#3d3d3d] md:grid-cols-3">
         {tiers.map((t) => {
-          const isCurrent = currentPlan === t.id;
+          const isCurrent = current === t.id;
           return (
             <button
               key={t.id}
@@ -177,14 +168,14 @@ export function PricingMatrix({
                 setErr("");
                 setSelected(t.id);
               }}
-              className={`flex flex-col gap-3 rounded-[4px] border p-5 text-left transition ${
-                t.highlight ? "border-[#1F6B47]" : "border-[#1F2430]"
-              } ${selected === t.id ? "bg-[#161B24]" : "bg-[#12151C] hover:border-[#B0B6C3]"}`}
+              className={`relative flex flex-col gap-4 border-b border-[#3d3d3d] p-6 text-left transition-colors last:border-b-0 md:border-b-0 md:border-r md:last:border-r-0 ${
+                t.highlight ? "bg-[#141210] before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-[#c4893a]" : "bg-[#0a0a0a]"
+              } ${selected === t.id ? "bg-[#171717]" : "hover:bg-[#141414]"}`}
             >
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <h3 className="text-base font-semibold text-white">{t.name}</h3>
-                  <p className="mt-1 text-xs text-[#B0B6C3]">{t.note}</p>
+                  <h3 className="font-display text-3xl font-normal text-[#f4f1ea]">{t.name}</h3>
+                  <p className="mt-2 text-xs leading-relaxed text-[#c8c2b8]">{t.note}</p>
                 </div>
                 {isCurrent && (
                   <span className="shrink-0 rounded-[4px] border border-[#1F6B47] bg-[#14281F] px-2 py-0.5 text-[10px] font-semibold text-white">
@@ -192,16 +183,16 @@ export function PricingMatrix({
                   </span>
                 )}
               </div>
-              <p className="text-3xl font-semibold text-white">
+              <p className="font-display text-5xl text-[#f4f1ea]">
                 {t.price}
-                {t.per ? <span className="text-sm font-normal text-[#B0B6C3]">{t.per}</span> : null}
+                {t.per ? <span className="font-sans text-sm font-normal text-[#8d877e]">{t.per}</span> : null}
               </p>
-              <ul className="flex-1 space-y-1.5 text-sm text-[#B0B6C3]">
+              <ul className="flex-1 space-y-1.5 text-sm text-[#c8c2b8]">
                 {t.features.map((f) => (
                   <li key={f}>{f}</li>
                 ))}
               </ul>
-              <span className="text-xs font-medium text-[#B0B6C3]">
+              <span className="text-[11px] uppercase tracking-[0.16em] text-[#8d877e]">
                 {isCurrent ? "Selected plan" : "Select to continue →"}
               </span>
             </button>
@@ -219,10 +210,10 @@ export function PricingMatrix({
             if (e.target === e.currentTarget) setSelected(null);
           }}
         >
-          <div className="w-full max-w-md border border-[#222A3B] bg-[#0B0F14] p-6">
+          <div className="w-full max-w-md border border-[#3d3d3d] bg-[#0a0a0a] p-6">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-[10px] uppercase tracking-wider text-[#7C8495]">Payment summary</p>
+                <p className="text-[10px] uppercase tracking-wider text-[#8d877e]">Payment summary</p>
                 <h2 id="payment-summary-title" className="mt-1 text-xl font-semibold text-white">
                   {sel.name}
                 </h2>
@@ -230,43 +221,43 @@ export function PricingMatrix({
               <button
                 type="button"
                 onClick={() => setSelected(null)}
-                className="text-sm text-[#B0B6C3] hover:text-white"
+                className="text-sm text-[#c8c2b8] hover:text-white"
               >
                 Close
               </button>
             </div>
 
-            <div className="mt-4 border border-[#1F2430] bg-[#12151C] p-4">
+            <div className="mt-4 border border-[#2c2c2c] bg-[#111111] p-4">
               <div className="flex items-baseline justify-between">
-                <span className="text-sm text-[#B0B6C3]">Plan</span>
+                <span className="text-sm text-[#c8c2b8]">Plan</span>
                 <span className="text-sm font-medium text-white">{sel.name}</span>
               </div>
-              <div className="mt-2 flex items-baseline justify-between border-t border-[#1F2430] pt-2">
-                <span className="text-sm text-[#B0B6C3]">Amount</span>
+              <div className="mt-2 flex items-baseline justify-between border-t border-[#2c2c2c] pt-2">
+                <span className="text-sm text-[#c8c2b8]">Amount</span>
                 <span className="text-2xl font-semibold text-white">
                   {sel.price}
-                  {sel.per ? <span className="text-sm font-normal text-[#B0B6C3]">{sel.per}</span> : null}
+                  {sel.per ? <span className="text-sm font-normal text-[#c8c2b8]">{sel.per}</span> : null}
                 </span>
               </div>
             </div>
 
-            {mock && mode === "billing" && sel.id !== "ENTERPRISE" && (
+            {mock && mode === "billing" && (
               <div className="mt-4 border border-[#B45309] bg-[#1C1408] p-3 text-xs text-[#FFEDD5]">
                 Local billing mock — selecting a plan updates your org without Stripe. Payment
                 inputs stay separate from plan tiers.
               </div>
             )}
 
-            {!mock && !stripeReady && sel.cta === "checkout" && sel.id === "PRO" && (
+            {!mock && !stripeReady && sel.cta === "checkout" && (
               <p className="mt-4 text-xs text-[#FFE4E6]">
-                Stripe is not configured. Set STRIPE_SECRET_KEY and STRIPE_PRICE_PRO, or enable
+                Stripe is not configured. Set STRIPE_SECRET_KEY and STRIPE_PRICE_* ids, or enable
                 BILLING_DEV_MOCK=1.
               </p>
             )}
 
             {needsName && (
               <div className="mt-4 space-y-1">
-                <label className="text-xs font-medium text-[#B0B6C3]">
+                <label className="text-xs font-medium text-[#c8c2b8]">
                   Company / Repair Station Name
                 </label>
                 <input
@@ -284,17 +275,7 @@ export function PricingMatrix({
 
             <div className="mt-5 space-y-2">
               {sel.cta === "current" && (
-                <p className="text-center text-sm text-[#B0B6C3]">This is your current plan.</p>
-              )}
-              {sel.cta === "contact" && (
-                <Link href="/request-access?plan=enterprise" className={`${btnPrimary} w-full`}>
-                  Contact sales
-                </Link>
-              )}
-              {sel.cta === "dashboard" && (
-                <Link href="/dashboard" className={`${btnPrimary} w-full`}>
-                  Go to dashboard
-                </Link>
+                <p className="text-center text-sm text-[#c8c2b8]">This is your current plan.</p>
               )}
               {sel.cta === "checkout" && mock && mode === "billing" && (
                 <button
@@ -309,16 +290,24 @@ export function PricingMatrix({
               {sel.cta === "checkout" && !(mock && mode === "billing") && (
                 <button
                   type="button"
-                  disabled={busy || (!stripeReady && sel.id === "PRO" && !mock)}
-                  onClick={() => startCheckout(sel.id)}
+                  disabled={busy || (!stripeReady && !mock && !orgId)}
+                  onClick={() => {
+                    if (!orgId && !companyName.trim()) {
+                      setNeedsName(true);
+                      setErr("Enter your company name to continue.");
+                      return;
+                    }
+                    startCheckout(sel.id);
+                  }}
                   className={`${btnPrimary} w-full text-base`}
                 >
-                  {busy
-                    ? "Working…"
-                    : sel.id === "PILOT"
-                      ? "Start free Pilot"
-                      : "Continue to payment"}
+                  {busy ? "Working…" : "Continue to payment"}
                 </button>
+              )}
+              {!orgId && mode === "public" && (
+                <Link href={`/signup?plan=${sel.id.toLowerCase()}`} className={`${btnSecondary} w-full`}>
+                  Or start with signup
+                </Link>
               )}
               <button type="button" onClick={() => setSelected(null)} className={`${btnSecondary} w-full`}>
                 Back to plans

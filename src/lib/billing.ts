@@ -1,14 +1,33 @@
 import { prisma } from "@/lib/prisma";
-import type { PlanId } from "@/lib/planLimits";
+import { normalizePlanId, type PlanId } from "@/lib/planLimits";
 import { getAdminDevFlags } from "@/lib/adminFlags";
 
-/** Real Stripe Checkout requires both a secret key and a Pro price id. */
+/** Real Stripe Checkout requires a secret key and at least one paid price id. */
 export function stripeCheckoutConfigured(): boolean {
- return Boolean(process.env.STRIPE_SECRET_KEY?.trim() && process.env.STRIPE_PRICE_PRO?.trim());
+  const key = process.env.STRIPE_SECRET_KEY?.trim();
+  const price =
+    process.env.STRIPE_PRICE_PROFESSIONAL?.trim() ||
+    process.env.STRIPE_PRICE_STARTER?.trim() ||
+    process.env.STRIPE_PRICE_PRO?.trim();
+  return Boolean(key && price);
 }
 
 export function stripePortalConfigured(): boolean {
- return Boolean(process.env.STRIPE_SECRET_KEY?.trim());
+  return Boolean(process.env.STRIPE_SECRET_KEY?.trim());
+}
+
+export function stripePriceIdForPlan(plan: PlanId): string | null {
+  if (plan === "STARTER") {
+    return process.env.STRIPE_PRICE_STARTER?.trim() || null;
+  }
+  if (plan === "PROFESSIONAL") {
+    return (
+      process.env.STRIPE_PRICE_PROFESSIONAL?.trim() ||
+      process.env.STRIPE_PRICE_PRO?.trim() ||
+      null
+    );
+  }
+  return process.env.STRIPE_PRICE_ENTERPRISE?.trim() || null;
 }
 
 /**
@@ -20,46 +39,46 @@ export function stripePortalConfigured(): boolean {
  * - Never enabled in production unless admin override (still blocked below)
  */
 export function billingDevMockEnabled(): boolean {
- const override = getAdminDevFlags().billingDevMock;
- if (typeof override === "boolean") {
- if (process.env.NODE_ENV === "production" && override) return false;
- return override;
- }
- if (process.env.NODE_ENV === "production") return false;
- const flag = (process.env.BILLING_DEV_MOCK ?? "").toLowerCase().trim();
- if (flag === "0" || flag === "off" || flag === "false") return false;
- if (flag === "1" || flag === "true" || flag === "on" || flag === "yes") return true;
- return !stripeCheckoutConfigured();
+  const override = getAdminDevFlags().billingDevMock;
+  if (typeof override === "boolean") {
+    if (process.env.NODE_ENV === "production" && override) return false;
+    return override;
+  }
+  if (process.env.NODE_ENV === "production") return false;
+  const flag = (process.env.BILLING_DEV_MOCK ?? "").toLowerCase().trim();
+  if (flag === "0" || flag === "off" || flag === "false") return false;
+  if (flag === "1" || flag === "true" || flag === "on" || flag === "yes") return true;
+  return !stripeCheckoutConfigured();
 }
 
 export function isDevStripeCustomer(customerId: string | null | undefined): boolean {
- return Boolean(customerId?.startsWith("dev_cus_"));
+  return Boolean(customerId?.startsWith("dev_cus_"));
 }
 
 /** Upgrade or change plan locally when Stripe is not configured. */
 export async function applyDevPlan(orgId: string, plan: PlanId) {
- const isPaid = plan === "PRO" || plan === "ENTERPRISE";
- const org = await prisma.organization.update({
- where: { id: orgId },
- data: {
- plan,
- subStatus: isPaid ? "active" : null,
- stripeCustomerId: isPaid ? `dev_cus_${orgId.slice(0, 18)}` : null,
- stripeSubId: isPaid ? `dev_sub_${orgId.slice(0, 18)}` : null,
- currentPeriodEnd: isPaid ? new Date(Date.now() + 30 * 86_400_000) : null,
- },
- });
- await prisma.auditLog.create({
- data: {
- organizationId: orgId,
- action: "BILLING_UPDATED",
- meta: JSON.stringify({ source: "billing_dev_mock", plan }),
- },
- });
- return org;
+  const normalized = normalizePlanId(plan);
+  const org = await prisma.organization.update({
+    where: { id: orgId },
+    data: {
+      plan: normalized,
+      subStatus: "active",
+      stripeCustomerId: `dev_cus_${orgId.slice(0, 18)}`,
+      stripeSubId: `dev_sub_${orgId.slice(0, 18)}`,
+      currentPeriodEnd: new Date(Date.now() + 30 * 86_400_000),
+    },
+  });
+  await prisma.auditLog.create({
+    data: {
+      organizationId: orgId,
+      action: "BILLING_UPDATED",
+      meta: JSON.stringify({ source: "billing_dev_mock", plan: normalized }),
+    },
+  });
+  return org;
 }
 
 /** @deprecated use applyDevPlan */
 export async function applyDevProUpgrade(orgId: string) {
- return applyDevPlan(orgId, "PRO");
+  return applyDevPlan(orgId, "PROFESSIONAL");
 }

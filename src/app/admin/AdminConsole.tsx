@@ -78,12 +78,12 @@ function money(n: number) {
 
 function StatusDot({ ok, label }: { ok: boolean; label: string }) {
  return (
- <div className="flex items-center gap-2 border border-[#1F2430] bg-[#0B0F14] px-3 py-2 text-xs">
+ <div className="flex items-center gap-2 border border-[#2c2c2c] bg-[#0a0a0a] px-3 py-2 text-xs">
  <span
  className={`h-2 w-2 ${ok ? "bg-[#1F6B47]" : "bg-[#9F1239]"}`}
  aria-hidden
  />
- <span className="text-[#B0B6C3]">{label}</span>
+ <span className="text-[#c8c2b8]">{label}</span>
  <span className={`pp-track ml-auto ${ok ? "text-[#1F6B47]" : "text-[#FFE4E6]"}`}>
  {ok ? "OK" : "DOWN"}
  </span>
@@ -111,14 +111,16 @@ export default function AdminConsole() {
  const [fixtureId, setFixtureId] = useState("sample-1");
  const [loadErr, setLoadErr] = useState("");
 
- const checkSession = useCallback(async () => {
- const r = await fetch("/api/admin/session");
- setAuthed(r.ok);
- }, []);
-
  useEffect(() => {
- checkSession();
- }, [checkSession]);
+ let cancelled = false;
+ (async () => {
+ const r = await fetch("/api/admin/session");
+ if (!cancelled) setAuthed(r.ok);
+ })();
+ return () => {
+ cancelled = true;
+ };
+ }, []);
 
  async function login(e: React.FormEvent) {
  e.preventDefault();
@@ -183,7 +185,7 @@ export default function AdminConsole() {
 
  useEffect(() => {
  if (!authed) return;
- setLoadErr("");
+ let cancelled = false;
  (async () => {
  try {
  if (tab === "overview") await loadOverview();
@@ -192,10 +194,14 @@ export default function AdminConsole() {
  if (tab === "sandbox") {
  await Promise.all([loadSandbox(), loadTenants()]);
  }
+ if (!cancelled) setLoadErr("");
  } catch (e) {
- setLoadErr((e as Error).message);
+ if (!cancelled) setLoadErr((e as Error).message);
  }
  })();
+ return () => {
+ cancelled = true;
+ };
  }, [authed, tab, loadOverview, loadTenants, loadInbox, loadSandbox]);
 
  async function setPlan(id: string, plan: string) {
@@ -240,7 +246,7 @@ export default function AdminConsole() {
  if (authed === null) {
  return (
  <main className="mx-auto max-w-md px-4 py-20">
- <p className="pp-track text-xs text-[#7C8495]">Checking admin session…</p>
+ <p className="pp-track text-xs text-[#8d877e]">Checking admin session…</p>
  </main>
  );
  }
@@ -249,12 +255,12 @@ export default function AdminConsole() {
  return (
  <main className="mx-auto max-w-md space-y-6 px-4 py-16">
  <div>
- <p className="pp-track text-[11px] uppercase tracking-[0.2em] text-[#B0B6C3]">
+ <p className="pp-track text-[11px] uppercase tracking-[0.2em] text-[#c8c2b8]">
  Super-admin
  </p>
  <h1 className="mt-2 text-2xl font-semibold text-white">Owner command center</h1>
- <p className="mt-2 text-sm text-[#B0B6C3]">
- Authenticate with <span className="pp-track text-[#B0B6C3]">ADMIN_TOKEN</span> from
+ <p className="mt-2 text-sm text-[#c8c2b8]">
+ Authenticate with <span className="pp-track text-[#c8c2b8]">ADMIN_TOKEN</span> from
  your environment. Sessions are HTTP-only and expire in 8 hours.
  </p>
  </div>
@@ -288,7 +294,7 @@ export default function AdminConsole() {
  <main className="mx-auto max-w-6xl space-y-5 px-4 py-8">
  <div className="flex flex-wrap items-end justify-between gap-3">
  <div>
- <p className="pp-track text-[11px] uppercase tracking-[0.2em] text-[#B0B6C3]">
+ <p className="pp-track text-[11px] uppercase tracking-[0.2em] text-[#c8c2b8]">
  Super-admin / owner
  </p>
  <h1 className="mt-1 text-2xl font-semibold text-white">Command center</h1>
@@ -298,16 +304,19 @@ export default function AdminConsole() {
  </button>
  </div>
 
- <div className="flex flex-wrap gap-1 border border-[#1F2430] bg-[#12151C] p-1">
+ <div className="flex flex-wrap gap-1 border border-[#2c2c2c] bg-[#111111] p-1">
  {TABS.map((t) => (
  <button
  key={t.id}
  type="button"
- onClick={() => setTab(t.id)}
+ onClick={() => {
+ setLoadErr("");
+ setTab(t.id);
+ }}
  className={`px-3 py-2 text-sm ${
  tab === t.id
- ? "bg-[#161B24] text-white"
- : "text-[#B0B6C3] hover:text-white"
+ ? "bg-[#171717] text-white"
+ : "text-[#c8c2b8] hover:text-white"
  }`}
  >
  {t.label}
@@ -323,31 +332,31 @@ export default function AdminConsole() {
  <div className="space-y-4">
  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
  <Card>
- <p className="text-xs text-[#7C8495]">Active MRO orgs</p>
+ <p className="text-xs text-[#8d877e]">Active MRO orgs</p>
  <p className="pp-track mt-1 text-2xl text-white">
  {metrics?.activeOrganizations ?? "—"}
  </p>
  </Card>
  <Card>
- <p className="text-xs text-[#7C8495]">8130-3 / Form 1 scanned</p>
+ <p className="text-xs text-[#8d877e]">8130-3 / Form 1 scanned</p>
  <p className="pp-track mt-1 text-2xl text-white">
  {metrics?.certificatesScanned ?? "—"}
  </p>
- <p className="mt-1 text-xs text-[#7C8495]">
+ <p className="mt-1 text-xs text-[#8d877e]">
  {metrics?.checksThisMonth ?? 0} this month
  </p>
  </Card>
  <Card>
- <p className="text-xs text-[#7C8495]">Estimated MRR</p>
+ <p className="text-xs text-[#8d877e]">Estimated MRR</p>
  <p className="pp-track mt-1 text-2xl text-white">
  {metrics ? money(metrics.estimatedMrrUsd) : "—"}
  </p>
- <p className="mt-1 text-xs text-[#7C8495]">
+ <p className="mt-1 text-xs text-[#8d877e]">
  {metrics?.paidTenants ?? 0} paid tenants
  </p>
  </Card>
  <Card>
- <p className="text-xs text-[#7C8495]">Open inbox items</p>
+ <p className="text-xs text-[#8d877e]">Open inbox items</p>
  <p className="pp-track mt-1 text-2xl text-[#B45309]">
  {metrics?.openLeads ?? "—"}
  </p>
@@ -364,12 +373,12 @@ export default function AdminConsole() {
  </div>
 
  {health && (
- <Card className="space-y-2 text-sm text-[#B0B6C3]">
+ <Card className="space-y-2 text-sm text-[#c8c2b8]">
  <p>
- <span className="text-[#B0B6C3]">OCR:</span> {health.ocr.message}
+ <span className="text-[#c8c2b8]">OCR:</span> {health.ocr.message}
  </p>
  <p>
- <span className="text-[#B0B6C3]">Billing:</span> Stripe checkout{" "}
+ <span className="text-[#c8c2b8]">Billing:</span> Stripe checkout{" "}
  {health.billing.stripeCheckout ? "configured" : "not configured"}
  {" · "}
  Dev mock {health.billing.devMock ? "on" : "off"}
@@ -385,7 +394,7 @@ export default function AdminConsole() {
  {tab === "tenants" && (
  <Card className="overflow-x-auto p-0">
  <table className="w-full text-left text-sm">
- <thead className="border-b border-[#1F2430] text-xs text-[#7C8495]">
+ <thead className="border-b border-[#2c2c2c] text-xs text-[#8d877e]">
  <tr>
  <th className="px-3 py-2 font-medium">Organization</th>
  <th className="px-3 py-2 font-medium">Plan</th>
@@ -397,10 +406,10 @@ export default function AdminConsole() {
  </thead>
  <tbody>
  {tenants.map((t) => (
- <tr key={t.id} className="border-t border-[#1F2430]">
+ <tr key={t.id} className="border-t border-[#2c2c2c]">
  <td className="px-3 py-2">
  <p className="font-medium text-white">{t.name}</p>
- <p className="pp-track text-[10px] text-[#7C8495]">{t.id}</p>
+ <p className="pp-track text-[10px] text-[#8d877e]">{t.id}</p>
  <div className="mt-1 flex flex-wrap gap-1">
  {!t.active && <Badge tone="red">Inactive</Badge>}
  <Badge tone={t.verification === "VERIFIED" ? "green" : "slate"}>
@@ -412,28 +421,28 @@ export default function AdminConsole() {
  <td className="px-3 py-2">
  <Badge
  tone={
- t.plan === "ENTERPRISE" ? "green" : t.plan === "PRO" ? "blue" : "slate"
+ t.plan === "ENTERPRISE" ? "green" : t.plan === "PROFESSIONAL" ? "blue" : "slate"
  }
  >
  {t.plan}
  </Badge>
  </td>
- <td className="pp-track px-3 py-2 text-[#B0B6C3]">
+ <td className="pp-track px-3 py-2 text-[#c8c2b8]">
  {t.usage.checks}/{t.usage.checksLimit}
  </td>
- <td className="pp-track px-3 py-2 text-[#B0B6C3]">
+ <td className="pp-track px-3 py-2 text-[#c8c2b8]">
  {t.usage.registrations}/{t.usage.registrationsLimit >= 10000 ? "∞" : t.usage.registrationsLimit}
  </td>
- <td className="pp-track px-3 py-2 text-[#B0B6C3]">{money(t.mrrUsd)}</td>
+ <td className="pp-track px-3 py-2 text-[#c8c2b8]">{money(t.mrrUsd)}</td>
  <td className="px-3 py-2">
  <div className="flex flex-wrap gap-1">
- {(["PILOT", "PRO", "ENTERPRISE"] as const)
+ {(["STARTER", "PROFESSIONAL", "ENTERPRISE"] as const)
  .filter((p) => p !== t.plan)
  .map((p) => (
  <button
  key={p}
  type="button"
- className="border border-[#1F2430] px-2 py-1 text-[11px] text-[#B0B6C3] hover:border-[#B0B6C3]"
+ className="border border-[#2c2c2c] px-2 py-1 text-[11px] text-[#c8c2b8] hover:border-[#c8c2b8]"
  onClick={() => setPlan(t.id, p)}
  >
  → {p}
@@ -441,7 +450,7 @@ export default function AdminConsole() {
  ))}
  <button
  type="button"
- className="border border-[#1F2430] px-2 py-1 text-[11px] text-[#1F6B47] hover:border-[#1F6B47]"
+ className="border border-[#2c2c2c] px-2 py-1 text-[11px] text-[#1F6B47] hover:border-[#1F6B47]"
  onClick={() => navigator.clipboard.writeText(t.id)}
  title="Copy organization ID"
  >
@@ -453,7 +462,7 @@ export default function AdminConsole() {
  ))}
  {tenants.length === 0 && (
  <tr>
- <td colSpan={6} className="px-3 py-8 text-center text-[#7C8495]">
+ <td colSpan={6} className="px-3 py-8 text-center text-[#8d877e]">
  No organizations registered.
  </td>
  </tr>
@@ -465,7 +474,7 @@ export default function AdminConsole() {
 
  {tab === "inbox" && (
  <div className="space-y-3">
- <p className="text-xs text-[#7C8495]">
+ <p className="text-xs text-[#8d877e]">
  Lead / request-access submissions
  {webhookConfigured
  ? " · LEAD_WEBHOOK_URL is configured (alerts also fire externally)"
@@ -477,9 +486,9 @@ export default function AdminConsole() {
  <div>
  <p className="font-medium text-white">
  {l.name}{" "}
- <span className="text-[#7C8495]">· {l.company}</span>
+ <span className="text-[#8d877e]">· {l.company}</span>
  </p>
- <p className="pp-track text-xs text-[#B0B6C3]">
+ <p className="pp-track text-xs text-[#c8c2b8]">
  {l.email}
  {l.role ? ` · ${l.role}` : ""}
  {l.volume ? ` · vol ${l.volume}` : ""}
@@ -498,13 +507,13 @@ export default function AdminConsole() {
  >
  {l.status}
  </Badge>
- <span className="pp-track text-[10px] text-[#7C8495]">
+ <span className="pp-track text-[10px] text-[#8d877e]">
  {l.createdAt.slice(0, 16).replace("T", " ")}
  </span>
  </div>
  </div>
  {l.message && (
- <p className="border border-[#1F2430] bg-[#0B0F14] p-2 text-sm text-[#B0B6C3]">
+ <p className="border border-[#2c2c2c] bg-[#0a0a0a] p-2 text-sm text-[#c8c2b8]">
  {l.message}
  </p>
  )}
@@ -514,7 +523,7 @@ export default function AdminConsole() {
  key={s}
  type="button"
  disabled={l.status === s}
- className="border border-[#1F2430] px-2 py-1 text-[11px] text-[#B0B6C3] hover:border-[#B0B6C3] disabled:opacity-40"
+ className="border border-[#2c2c2c] px-2 py-1 text-[11px] text-[#c8c2b8] hover:border-[#c8c2b8] disabled:opacity-40"
  onClick={() => setLeadStatus(l.id, s)}
  >
  {s}
@@ -525,7 +534,7 @@ export default function AdminConsole() {
  ))}
  {leads.length === 0 && (
  <Card>
- <p className="text-sm text-[#7C8495]">No leads or form submissions yet.</p>
+ <p className="text-sm text-[#8d877e]">No leads or form submissions yet.</p>
  </Card>
  )}
  </div>
@@ -535,7 +544,7 @@ export default function AdminConsole() {
  <div className="grid gap-4 lg:grid-cols-2">
  <Card className="space-y-3">
  <h2 className="text-sm font-semibold text-white">OCR fixture runner</h2>
- <p className="text-xs text-[#7C8495]">
+ <p className="text-xs text-[#8d877e]">
  Runs the Deterministic OCR Pipeline against checked-in 8130-3 samples.
  </p>
  <Field label="Fixture">
@@ -562,7 +571,7 @@ export default function AdminConsole() {
 
  <Card className="space-y-3">
  <h2 className="text-sm font-semibold text-white">Stripe webhook simulator</h2>
- <p className="text-xs text-[#7C8495]">
+ <p className="text-xs text-[#8d877e]">
  Applies the same interpretStripeEvent patches without a live signature.
  </p>
  <Field label="Organization">
@@ -612,11 +621,11 @@ export default function AdminConsole() {
 
  <Card className="space-y-3 lg:col-span-2">
  <h2 className="text-sm font-semibold text-white">Dev flags (in-process)</h2>
- <p className="text-xs text-[#7C8495]">
+ <p className="text-xs text-[#8d877e]">
  Toggles apply to this Node process only — reset on restart. Not persisted to .env.
  </p>
  <div className="flex flex-wrap gap-3 text-sm">
- <label className="flex items-center gap-2 text-[#B0B6C3]">
+ <label className="flex items-center gap-2 text-[#c8c2b8]">
  <input
  type="checkbox"
  checked={flags?.disableRateLimit ?? false}
@@ -682,8 +691,8 @@ export default function AdminConsole() {
 
  {sandboxOut && (
  <Card className="lg:col-span-2">
- <p className="mb-2 text-xs text-[#7C8495]">Sandbox output</p>
- <pre className="max-h-80 overflow-auto border border-[#1F2430] bg-[#0B0F14] p-3 pp-track text-[11px] text-[#B0B6C3] whitespace-pre-wrap">
+ <p className="mb-2 text-xs text-[#8d877e]">Sandbox output</p>
+ <pre className="max-h-80 overflow-auto border border-[#2c2c2c] bg-[#0a0a0a] p-3 pp-track text-[11px] text-[#c8c2b8] whitespace-pre-wrap">
  {sandboxOut}
  </pre>
  </Card>

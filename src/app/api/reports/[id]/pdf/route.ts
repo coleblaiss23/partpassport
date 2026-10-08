@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { sessionOrgFromRequest } from "@/lib/auth";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+ const org = await sessionOrgFromRequest(req);
+ if (!org) return NextResponse.json({ error: "Not found" }, { status: 404 });
  const { id } = await params;
- const check = await prisma.certificateCheck.findUnique({
- where: { id },
+ const check = await prisma.certificateCheck.findFirst({
+ where: { id, organizationId: org.id },
  include: { organization: { select: { name: true } } },
  });
  if (!check) return NextResponse.json({ error: "Not found" }, { status: 404 });

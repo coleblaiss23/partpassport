@@ -33,10 +33,10 @@ function StatusChip({
 
 export default function LandingCertPreview() {
  return (
- <div className="bg-[#0B0F14]">
- <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#1F2430] px-4 py-3">
+ <div className="bg-[#0a0a0a]">
+ <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#2c2c2c] px-4 py-3">
  <div>
- <p className="pp-track text-[10px] uppercase tracking-[0.18em] text-[#7C8495]">
+ <p className="pp-track text-[10px] uppercase tracking-[0.18em] text-[#8d877e]">
  Certificate intake · FAA Form 8130-3
  </p>
  <p className="pp-track mt-0.5 text-sm text-white">APV-7742-101 / SN-2026-0491</p>
@@ -52,14 +52,14 @@ export default function LandingCertPreview() {
  <p className="text-sm font-medium text-white">
  Clear — 0 findings · Deterministic OCR Pipeline complete
  </p>
- <p className="mt-0.5 text-xs text-[#B0B6C3]">
+ <p className="mt-0.5 text-xs text-[#c8c2b8]">
  Block integrity verified · Automated FAA UPN cross-reference: no matches
  </p>
  </div>
 
  <table className="w-full text-sm">
  <thead>
- <tr className="border-b border-[#1F2430] text-left text-[10px] uppercase tracking-wider text-[#7C8495]">
+ <tr className="border-b border-[#2c2c2c] text-left text-[10px] uppercase tracking-wider text-[#8d877e]">
  <th className="px-4 py-2 font-medium">Blk</th>
  <th className="px-4 py-2 font-medium">Field</th>
  <th className="px-4 py-2 font-medium">Extracted</th>
@@ -68,9 +68,9 @@ export default function LandingCertPreview() {
  </thead>
  <tbody>
  {ROWS.map((r) => (
- <tr key={r.block} className="border-b border-[#1F2430] last:border-0">
- <td className="pp-track px-4 py-2 text-[#7C8495]">{r.block}</td>
- <td className="px-4 py-2 text-[#B0B6C3]">{r.label}</td>
+ <tr key={r.block} className="border-b border-[#2c2c2c] last:border-0">
+ <td className="pp-track px-4 py-2 text-[#8d877e]">{r.block}</td>
+ <td className="px-4 py-2 text-[#c8c2b8]">{r.label}</td>
  <td className="pp-track px-4 py-2 text-white">{r.value}</td>
  <td className="px-4 py-2 text-right">
  <span className="inline-flex items-center gap-1 text-[#1F6B47]">
@@ -83,18 +83,18 @@ export default function LandingCertPreview() {
  </tbody>
  </table>
 
- <div className="grid grid-cols-3 divide-x divide-[#1F2430] border-t border-[#1F2430]">
+ <div className="grid grid-cols-3 divide-x divide-[#2c2c2c] border-t border-[#2c2c2c]">
  <div className="px-4 py-3">
- <p className="text-[10px] uppercase tracking-wider text-[#7C8495]">AVL</p>
+ <p className="text-[10px] uppercase tracking-wider text-[#8d877e]">AVL</p>
  <p className="pp-track mt-1 text-xs text-white">On list · CRS XYZW 123V</p>
  </div>
  <div className="px-4 py-3">
- <p className="text-[10px] uppercase tracking-wider text-[#7C8495]">Life limits</p>
+ <p className="text-[10px] uppercase tracking-wider text-[#8d877e]">Life limits</p>
  <p className="pp-track mt-1 text-xs text-white">4200 / 8000 h</p>
  </div>
  <div className="px-4 py-3">
- <p className="text-[10px] uppercase tracking-wider text-[#7C8495]">UPN</p>
- <p className="pp-track mt-1 text-xs text-[#B0B6C3]">No flag</p>
+ <p className="text-[10px] uppercase tracking-wider text-[#8d877e]">UPN</p>
+ <p className="pp-track mt-1 text-xs text-[#c8c2b8]">No flag</p>
  </div>
  </div>
  </div>

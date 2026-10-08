@@ -5,7 +5,7 @@ import { getUsage } from "@/lib/usage";
 import { PLAN_LIMITS, effectivePlan } from "@/lib/planLimits";
 import { readJson, unauthorized } from "@/lib/api";
 
-const MAX_KEYS = { PILOT: 1, PRO: 5, ENTERPRISE: 50 } as const;
+const MAX_KEYS = { STARTER: 2, PROFESSIONAL: 10, ENTERPRISE: 50 } as const;
 
 // Key management is limited to a signed-in browser session, so a leaked API key cannot mint more keys.
 export async function GET(request: Request) {

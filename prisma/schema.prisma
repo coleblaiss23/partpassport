@@ -14,37 +14,100 @@ enum OrgVerification {
 }
 
 enum Plan {
-  PILOT
-  PRO
+  STARTER
+  PROFESSIONAL
   ENTERPRISE
 }
 
+enum ComplianceStatus {
+  OPEN
+  COMPLIED
+  NOT_APPLICABLE
+  OVERDUE
+}
+
+enum LimitBasis {
+  CALENDAR
+  HOURS
+  CYCLES
+}
+
+enum DocumentKind {
+  LOGBOOK
+  INVOICE
+  CERTIFICATE
+  OTHER
+}
+
+enum DocumentStatus {
+  UPLOADED
+  PROCESSING
+  EXTRACTED
+  FAILED
+}
+
+enum WorkOrderStatus {
+  DRAFT
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELED
+}
+
+enum InvoicePaymentStatus {
+  PENDING
+  PAID
+  CHECK_RECEIVED
+  VOID
+}
+
+enum PaymentMethodHint {
+  CARD
+  APPLE_PAY
+  GOOGLE_PAY
+  CHECK
+  MANUAL
+}
+
 model Organization {
-  id                 String             @id @default(cuid())
-  name               String
-  clerkOrgId         String?            @unique
-  faaCertNumber      String? // self-reported until verified
-  easaApprovalNumber String?
-  verification       OrgVerification    @default(UNVERIFIED)
-  verifiedAt         DateTime?
-  publicKey          String
-  encPrivateKey      String? // AES-GCM envelope. Null for bring-your-own-key orgs
-  keyVersion         Int                @default(1)
-  active             Boolean            @default(true)
-  plan               Plan               @default(PILOT)
-  stripeCustomerId   String?            @unique
-  stripeSubId        String?            @unique
-  subStatus          String?
-  currentPeriodEnd   DateTime?
-  createdAt          DateTime           @default(now())
-  apiKeys            ApiKey[]
-  parts              Part[]             @relation("CurrentCustodian")
-  events             PartEvent[]
-  checks             CertificateCheck[]
-  auditLogs          AuditLog[]
-  approvedVendors  ApprovedVendor[]
-  complianceItems  ComplianceItem[]
-  auditShares      AuditShare[]
+  id                   String                @id @default(cuid())
+  name                 String
+  clerkOrgId           String?               @unique
+  faaCertNumber        String? // self-reported until verified
+  easaApprovalNumber   String?
+  verification         OrgVerification       @default(UNVERIFIED)
+  verifiedAt           DateTime?
+  publicKey            String
+  encPrivateKey        String? // AES-GCM envelope. Null for bring-your-own-key orgs
+  keyVersion           Int                   @default(1)
+  active               Boolean               @default(true)
+  plan                 Plan                  @default(STARTER)
+  stripeCustomerId     String?               @unique
+  stripeSubId          String?               @unique
+  subStatus            String?
+  currentPeriodEnd     DateTime?
+  trialEndsAt          DateTime?
+  /// Null = use plan default (STARTER=5, PROFESSIONAL/ENTERPRISE unlimited)
+  maxAircraft          Int?
+  /// Optional org-level feature overrides (JSON)
+  features             String?
+  createdAt            DateTime              @default(now())
+  apiKeys              ApiKey[]
+  parts                Part[]                @relation("CurrentCustodian")
+  events               PartEvent[]
+  checks               CertificateCheck[]
+  auditLogs            AuditLog[]
+  approvedVendors      ApprovedVendor[]
+  complianceItems      ComplianceItem[]
+  auditShares          AuditShare[]
+  aircraft             Aircraft[]
+  shops                Shop[]
+  workOrders           WorkOrder[]
+  invoices             Invoice[]
+  documentUploads      DocumentUpload[]
+  webhookEndpoints     WebhookEndpoint[]
+  mechanicCertificates MechanicCertificate[]
+  lifeLimitedComponents LifeLimitedComponent[]
 }
 
 model ApiKey {
@@ -141,7 +204,7 @@ model CertificateCheck {
 }
 
 model SafetyFlag {
-  id               String   @id @default(cuid())
+  id               String             @id @default(cuid())
   partNumber       String
   partNumberNorm   String
   source           String // "AD" or "SDR"
@@ -151,7 +214,8 @@ model SafetyFlag {
   serialRangeEnd   String?
   issuedDate       DateTime
   url              String?
-  createdAt        DateTime @default(now())
+  createdAt        DateTime           @default(now())
+  aircraftStatuses  AircraftADStatus[]
 
   @@unique([source, referenceId, partNumberNorm])
   @@index([partNumberNorm])
@@ -165,7 +229,7 @@ model Lead {
   role      String?
   volume    String? // certificates per month, self-reported
   message   String?
-  source    String? // e.g. "pilot", "pro", "enterprise"
+  source    String? // e.g. "starter", "professional", "enterprise"
   status    String   @default("NEW")
   createdAt DateTime @default(now())
 
@@ -204,16 +268,16 @@ model ApprovedVendor {
 
 /// Shop tool calibrations, vendor cert expirations, inspection authorizations.
 model ComplianceItem {
-  id             String             @id @default(cuid())
+  id             String       @id @default(cuid())
   organizationId String
-  organization   Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   category       String // TOOL_CALIBRATION | VENDOR_CERT | INSPECTION_AUTH
   name           String
   reference      String?
   expiresAt      DateTime
   notes          String?
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   @@index([organizationId, expiresAt])
   @@index([organizationId, category])
@@ -257,4 +321,239 @@ model TutorialVideo {
 
   @@index([published, sortOrder])
   @@index([category])
+}
+
+/// Multi-location shop (Enterprise).
+model Shop {
+  id                     String       @id @default(cuid())
+  organizationId         String
+  organization           Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name                   String
+  location               String?
+  faaRepairStationNumber String?
+  active                 Boolean      @default(true)
+  createdAt              DateTime     @default(now())
+  updatedAt              DateTime     @updatedAt
+  workOrders             WorkOrder[]
+  invoices               Invoice[]
+
+  @@index([organizationId, active])
+}
+
+/// Cached FAA / ADS-B style N-number registry metadata for fleet enrichment.
+model AircraftRegistry {
+  id           String   @id @default(cuid())
+  /// Normalized N-number (e.g. N4867W)
+  tailNumber   String   @unique
+  make         String
+  model        String
+  year         Int?
+  serialNumber String?
+  engineModel  String?
+  series       String?
+  /// FAA | ADSB | MANUAL | IMPORT
+  source       String   @default("MANUAL")
+  rawPayload   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([make, model])
+}
+
+/// Fleet aircraft / tail number hub.
+model Aircraft {
+  id                    String                  @id @default(cuid())
+  organizationId        String
+  organization          Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tailNumber            String
+  make                  String
+  model                 String
+  year                  Int?
+  series                String?
+  serialNumber          String?
+  engineModel           String?
+  airframeHours         Float?
+  hobbsHours            Float?
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  adStatuses             AircraftADStatus[]
+  lifeLimitedComponents LifeLimitedComponent[]
+  documentUploads       DocumentUpload[]
+  workOrders            WorkOrder[]
+  invoices              Invoice[]
+
+  @@unique([organizationId, tailNumber])
+  @@index([organizationId])
+  @@index([tailNumber])
+}
+
+/// Per-tail AD / safety-flag compliance tracking.
+model AircraftADStatus {
+  id                String           @id @default(cuid())
+  aircraftId        String
+  aircraft          Aircraft         @relation(fields: [aircraftId], references: [id], onDelete: Cascade)
+  safetyFlagId      String
+  safetyFlag        SafetyFlag       @relation(fields: [safetyFlagId], references: [id], onDelete: Cascade)
+  status            ComplianceStatus @default(OPEN)
+  compliedAt        DateTime?
+  dueAt             DateTime?
+  notes             String?
+  signedOffByUserId String?
+  signedOffByName   String?
+  signedOffAt       DateTime?
+  certificateRef    String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@unique([aircraftId, safetyFlagId])
+  @@index([aircraftId, status])
+  @@index([safetyFlagId])
+}
+
+/// Airframe-installed life-limited / calendar items (BRS, hoses, magnetos, overhauls).
+model LifeLimitedComponent {
+  id             String       @id @default(cuid())
+  aircraftId     String
+  aircraft       Aircraft     @relation(fields: [aircraftId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  /// BRS | HOSE | MAGNETO | OVERHAUL | OTHER
+  category       String       @default("OTHER")
+  limitBasis     LimitBasis
+  installedAt    DateTime?
+  dueAt          DateTime?
+  intervalDays   Int?
+  intervalHours  Float?
+  intervalCycles Int?
+  currentHours   Float?
+  currentCycles  Int?
+  lastCompliedAt DateTime?
+  notes          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([aircraftId])
+  @@index([organizationId, dueAt])
+  @@index([organizationId, category])
+}
+
+/// Scanned logbook / invoice / certificate uploads for OCR extraction.
+model DocumentUpload {
+  id               String         @id @default(cuid())
+  organizationId   String
+  organization     Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  aircraftId       String?
+  aircraft         Aircraft?      @relation(fields: [aircraftId], references: [id], onDelete: SetNull)
+  workOrderId      String?
+  workOrder        WorkOrder?     @relation(fields: [workOrderId], references: [id], onDelete: SetNull)
+  kind             DocumentKind   @default(OTHER)
+  status           DocumentStatus @default(UPLOADED)
+  fileName         String
+  mimeType         String
+  byteSize         Int
+  storageKey       String
+  sha256           String?
+  extracted        String? // JSON
+  errorMessage     String?
+  uploadedByUserId String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([organizationId, createdAt])
+  @@index([aircraftId])
+  @@index([workOrderId])
+  @@index([status])
+}
+
+model WorkOrder {
+  id                     String           @id @default(cuid())
+  organizationId         String
+  organization           Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  shopId                 String?
+  shop                   Shop?            @relation(fields: [shopId], references: [id], onDelete: SetNull)
+  aircraftId             String?
+  aircraft               Aircraft?        @relation(fields: [aircraftId], references: [id], onDelete: SetNull)
+  number                 String
+  status                 WorkOrderStatus  @default(DRAFT)
+  title                  String
+  description            String?
+  openedAt               DateTime         @default(now())
+  closedAt               DateTime?
+  assignedMechanicUserId String?
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+  invoices               Invoice[]
+  documentUploads        DocumentUpload[]
+
+  @@unique([organizationId, number])
+  @@index([organizationId, status])
+  @@index([aircraftId])
+  @@index([shopId])
+}
+
+model Invoice {
+  id                      String                @id @default(cuid())
+  organizationId          String
+  organization            Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  shopId                  String?
+  shop                    Shop?                 @relation(fields: [shopId], references: [id], onDelete: SetNull)
+  aircraftId              String?
+  aircraft                Aircraft?             @relation(fields: [aircraftId], references: [id], onDelete: SetNull)
+  workOrderId             String?
+  workOrder               WorkOrder?            @relation(fields: [workOrderId], references: [id], onDelete: SetNull)
+  number                  String
+  amountCents             Int
+  currency                String                @default("usd")
+  paymentStatus           InvoicePaymentStatus  @default(PENDING)
+  stripePaymentIntentId   String?               @unique
+  stripeCheckoutSessionId String?               @unique
+  paymentMethodHint       PaymentMethodHint?
+  paidAt                  DateTime?
+  checkReceivedAt         DateTime?
+  customerEmail           String?
+  lineItems               String? // JSON
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+
+  @@unique([organizationId, number])
+  @@index([organizationId, paymentStatus])
+  @@index([aircraftId])
+  @@index([workOrderId])
+  @@index([shopId])
+}
+
+model MechanicCertificate {
+  id                String       @id @default(cuid())
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  clerkUserId       String
+  displayName       String
+  /// A&P | IA | etc.
+  certificateType   String
+  certificateNumber String
+  expiresAt         DateTime?
+  ratings           String?
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@unique([organizationId, certificateNumber])
+  @@index([organizationId, clerkUserId])
+  @@index([organizationId, expiresAt])
+}
+
+model WebhookEndpoint {
+  id              String       @id @default(cuid())
+  organizationId  String
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  url             String
+  secretHash      String
+  /// CSV or JSON list of event names
+  events          String
+  active          Boolean      @default(true)
+  lastDeliveredAt DateTime?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([organizationId, active])
 }
